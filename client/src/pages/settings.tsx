@@ -8,10 +8,14 @@ function settings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3000/register", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/register",
+        {
+          username,
+          password,
+        },
+        { withCredentials: true }
+      );
       console.log(response.data); // Use the response here
     } catch (error) {
       console.error("error is: ", error);
