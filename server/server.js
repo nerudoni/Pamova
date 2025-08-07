@@ -33,6 +33,22 @@ createTables();
 
 //end of database setup
 
+//middleware to decode cookie and set user
+app.use(function (req, res, next) {
+  res.locals.errors = [];
+  //try to decode incoming cookie
+  try {
+    const decoded = jwt.verify(req.cookies.username, process.env.JWTSECRET);
+    req.user = decoded;
+  } catch (err) {
+    req.user = false;
+  }
+
+  res.locals.user = req.user;
+  console.log(req.user);
+  next();
+});
+
 app.post("/register", (req, res) => {
   let { username, password } = req.body;
   console.log("Recieved", username, password);
@@ -47,15 +63,16 @@ app.post("/register", (req, res) => {
   //get user id
   const result = addInfo.run(username, password);
   const lookupStatement = db.prepare("SELECT * FROM users WHERE id = ?");
-  const userRow = lookupStatement.get(result.lastInsertRowid).id;
+  const userRow = lookupStatement.get(result.lastInsertRowid);
 
   //log user in with cookie
 
   const token = jwt.sign(
     {
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
-      skyColor: "blue",
+      skyColor: "red",
       userid: userRow.id,
+      username: userRow.username,
     },
     process.env.JWTSECRET
   );
