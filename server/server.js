@@ -65,7 +65,7 @@ app.post("/register", (req, res) => {
   const lookupStatement = db.prepare("SELECT * FROM users WHERE id = ?");
   const userRow = lookupStatement.get(result.lastInsertRowid);
 
-  //log user in with cookie
+  //make cookie
 
   const token = jwt.sign(
     {
@@ -84,6 +84,33 @@ app.post("/register", (req, res) => {
   });
 
   res.json({ success: true, message: "Recieved username and password!" });
+});
+
+app.post("/login", (req, res) => {
+  let { username, password } = req.body;
+  console.log("Recieved", username, password);
+  const user = db
+    .prepare("SELECT * FROM users WHERE username = ?")
+    .get(username);
+  if (!user) {
+    return res.status(401).json({ error: "User not found" });
+  }
+
+  const match = bcrypt.compareSync(password, user.password);
+  if (!match) {
+    return res.status(401).json({ error: "Invalid password" });
+  }
+
+  const token = jwt.sign(
+    {
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+      skyColor: "red",
+      userid: user.id,
+      username: user.username,
+    },
+    process.env.JWTSECRET
+  );
+  res.json({ success: true, message: "Logged in successfully" });
 });
 
 app.get("/", (req, res) => {
