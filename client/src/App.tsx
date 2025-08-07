@@ -7,6 +7,8 @@ import Navbar from "./components/navbar";
 import Login from "./pages/login";
 import Settings from "./pages/settings";
 import Dashboard from "./pages/dashboard";
+import Manage from "./pages/manage";
+import CreateProject from "./pages/createProject";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/manage" element={<Manage />} />
+          <Route path="/createProject" element={<CreateProject />} />
         </Routes>
       </Router>
     </>

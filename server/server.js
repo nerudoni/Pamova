@@ -28,6 +28,17 @@ const createTables = db.transaction(() => {
     )
     `
   ).run();
+  db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      userId INTEGER,
+      FOREIGN KEY (userId) REFERENCES users(id)
+    )
+    `
+  ).run();
 });
 createTables();
 
@@ -112,7 +123,31 @@ app.post("/login", (req, res) => {
   );
   res.json({ success: true, message: "Logged in successfully" });
 });
+app.post("/createProject", (req, res) => {
+  const { title, description } = req.body;
+  console.log(
+    "Creating project with title:",
+    title,
+    "and description:",
+    description
+  );
 
+  //save into database
+  const ourStatement = db.prepare(
+    "INSERT INTO projects (title, description, userId) VALUES (?, ?, ?)"
+  );
+  const result = ourStatement.run(title, description, res.locals.user.userid);
+
+  // Here you would typically save the project to the database
+  // For now, we just return a success message
+  res.json({
+    success: true,
+    message: "Project created successfully",
+    project: { title, description },
+  });
+});
+
+//Redirect user to dashboard if already ogged in
 app.get("/check-login", (req, res) => {
   if (req.user) {
     return res.json({ loggedIn: true, user: req.user });
