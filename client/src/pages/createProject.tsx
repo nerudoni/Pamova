@@ -1,9 +1,21 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function CreateProject() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/check-login", { withCredentials: true })
+      .then((res) => {
+        if (!res.data.loggedIn) {
+          navigate("/login");
+        }
+      });
+  }, []);
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     axios
