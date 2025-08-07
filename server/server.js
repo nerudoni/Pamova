@@ -113,6 +113,13 @@ app.post("/login", (req, res) => {
   res.json({ success: true, message: "Logged in successfully" });
 });
 
+app.get("/check-login", (req, res) => {
+  if (req.user) {
+    return res.json({ loggedIn: true, user: req.user });
+  } else {
+    return res.json({ loggedIn: false });
+  }
+});
 app.get("/", (req, res) => {
   res.send("Hello World!!!");
 });

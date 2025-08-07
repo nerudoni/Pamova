@@ -1,11 +1,22 @@
 import React from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 function Login() {
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/check-login", { withCredentials: true })
+      .then((res) => {
+        if (res.data.loggedIn) {
+          navigate("/dashboard");
+        }
+      });
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
