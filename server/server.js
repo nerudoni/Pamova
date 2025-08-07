@@ -1,7 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 const app = express();
@@ -34,16 +36,30 @@ createTables();
 app.post("/register", (req, res) => {
   let { username, password } = req.body;
   console.log("Recieved", username, password);
-  const addInfo = db.prepare(
-    "Insert INTO users (username, password) VALUES (?, ?)"
-  );
+
   //hash the password
   const salt = bcrypt.genSaltSync(10);
   password = bcrypt.hashSync(password, salt);
-  addInfo.run(username, password);
+  //add to user database
+  const addInfo = db.prepare(
+    "Insert INTO users (username, password) VALUES (?, ?)"
+  );
+  //get user id
+  const result = addInfo.run(username, password);
+  const lookupStatement = db.prepare("SELECT * FROM users WHERE id = ?");
+  const userRow = lookupStatement.get(result.lastInsertRowid).id;
 
   //log user in with cookie
-  res.cookie("username", "some value", {
+
+  const token = jwt.sign(
+    {
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+      skyColor: "blue",
+      userid: userRow.id,
+    },
+    process.env.JWTSECRET
+  );
+  res.cookie("username", token, {
     httpOnly: true,
     secure: false,
     sameSite: "Strict",
