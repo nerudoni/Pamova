@@ -155,6 +155,16 @@ app.get("/check-login", (req, res) => {
     return res.json({ loggedIn: false });
   }
 });
+app.get("/projects", (req, res) => {
+  try {
+    const rows = db.prepare("SELECT * FROM projects").all();
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World!!!");
 });

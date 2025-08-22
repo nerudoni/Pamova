@@ -1,4 +1,44 @@
-function projects() {
-  return <h1>Hi projects</h1>;
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+
+interface Project {
+  id: number;
+  title: string;
+  description: string;
 }
-export default projects;
+function Projects() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/projects") // Adjust port if needed
+      .then((res) => {
+        setProjects(res.data);
+      })
+      .catch((err) => {
+        console.error("Error fetching projects:", err);
+      });
+  }, []);
+
+  return (
+    <>
+      <h1>Projects</h1>
+      {projects.length > 0 ? (
+        <ul>
+          {projects.map((project) => (
+            <li key={project.id}>
+              <Link to={`/project/${project.id}`}>
+                <h2>{project.title}</h2>
+                <p>{project.description}</p>
+              </Link>
+            </li>
+          ))}{" "}
+        </ul>
+      ) : (
+        <p>No projects yet</p>
+      )}
+    </>
+  );
+}
+
+export default Projects;
