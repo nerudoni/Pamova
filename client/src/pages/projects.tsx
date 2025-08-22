@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 interface Project {
   id: number;
   title: string;
-  description: string;
 }
 function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -27,9 +26,8 @@ function Projects() {
         <ul>
           {projects.map((project) => (
             <li key={project.id}>
-              <Link to={`/project/${project.id}`}>
+              <Link to={`/projects/${project.id}`}>
                 <h2>{project.title}</h2>
-                <p>{project.description}</p>
               </Link>
             </li>
           ))}{" "}

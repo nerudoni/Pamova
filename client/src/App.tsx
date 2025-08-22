@@ -9,6 +9,7 @@ import Settings from "./pages/settings";
 import Dashboard from "./pages/dashboard";
 import Manage from "./pages/manage";
 import CreateProject from "./pages/createProject";
+import ProjectPage from "./pages/projectpage";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/manage" element={<Manage />} />
           <Route path="/createProject" element={<CreateProject />} />
+          <Route path="/projects/:id" element={<ProjectPage />} />
         </Routes>
       </Router>
     </>

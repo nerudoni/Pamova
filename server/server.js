@@ -164,6 +164,20 @@ app.get("/projects", (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+app.get("/projects/:id", (req, res) => {
+  const { id } = req.params;
+  try {
+    const row = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+    if (!row) {
+      res.status(404).json({ error: "Project not found" });
+    } else {
+      res.json(row);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
 
 app.get("/", (req, res) => {
   res.send("Hello World!!!");
