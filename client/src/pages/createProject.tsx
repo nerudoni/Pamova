@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 function CreateProject() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,12 +19,16 @@ function CreateProject() {
   }, []);
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    files.forEach((file) => formData.append("images", file)); // "images" matches backend
+
     axios
-      .post(
-        "http://localhost:3000/createProject",
-        { title, description },
-        { withCredentials: true }
-      )
+      .post("http://localhost:3000/createProject", formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then((response) => {
         console.log("Project created:", response.data);
       })
@@ -60,6 +65,19 @@ function CreateProject() {
               ></textarea>
             </label>
             <br />
+            <label htmlFor="images">
+              <small>Upload images</small>
+              <input
+                type="file"
+                name="images"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setFiles(Array.from(e.target.files));
+                  }
+                }}
+              />
+            </label>
             <button type="submit">Create</button>
           </fieldset>
         </form>

@@ -6,7 +6,22 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
+const multer = require("multer");
+const path = require("path");
+
 const app = express();
+
+// Configure storage location + filenames
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // stores images inside backend/uploads
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // unique filename
+  },
+});
+const upload = multer({ storage });
+app.use("/uploads", express.static("uploads"));
 
 app.use(
   cors({
@@ -36,6 +51,16 @@ const createTables = db.transaction(() => {
       description TEXT,
       userId INTEGER,
       FOREIGN KEY (userId) REFERENCES users(id)
+    )
+    `
+  ).run();
+  db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS images (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      image_url TEXT NOT NULL,
+      projectID INTEGER,
+      FOREIGN KEY (projectId) REFERENCES projects(id)
     )
     `
   ).run();
@@ -123,7 +148,7 @@ app.post("/login", (req, res) => {
   );
   res.json({ success: true, message: "Logged in successfully" });
 });
-app.post("/createProject", (req, res) => {
+app.post("/createProject", upload.array("images"), (req, res) => {
   const { title, description } = req.body;
   console.log(
     "Creating project with title:",
@@ -133,10 +158,25 @@ app.post("/createProject", (req, res) => {
   );
 
   //save into database
-  const ourStatement = db.prepare(
+  const projectStatement = db.prepare(
     "INSERT INTO projects (title, description, userId) VALUES (?, ?, ?)"
   );
-  const result = ourStatement.run(title, description, res.locals.user.userid);
+  const result = projectStatement.run(
+    title,
+    description,
+    res.locals.user.userid
+  );
+  const projectId = result.lastInsertRowid;
+
+  if (req.files && req.files.length > 0) {
+    const imageStmt = db.prepare(
+      "INSERT INTO images (image_url, projectID) VALUES (?, ?)"
+    );
+    req.files.forEach((file) => {
+      const imagePath = `/uploads/${file.filename}`;
+      imageStmt.run(imagePath, projectId);
+    });
+  }
 
   // Here you would typically save the project to the database
   // For now, we just return a success message
@@ -181,6 +221,19 @@ app.get("/projects/:id", (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Hello World!!!");
+});
+
+app.get("/projects/:id/images", (req, res) => {
+  const { id } = req.params;
+  try {
+    const images = db
+      .prepare("SELECT * FROM images WHERE projectID = ?")
+      .all(id);
+    res.json(images);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 app.listen(3000);
