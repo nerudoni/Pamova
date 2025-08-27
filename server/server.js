@@ -146,6 +146,12 @@ app.post("/login", (req, res) => {
     },
     process.env.JWTSECRET
   );
+  res.cookie("username", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "Strict",
+    maxAge: 1000 * 60 * 60 * 24,
+  });
   res.json({ success: true, message: "Logged in successfully" });
 });
 app.post("/createProject", upload.array("images"), (req, res) => {
