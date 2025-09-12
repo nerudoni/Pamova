@@ -10,7 +10,7 @@ function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   useEffect(() => {
     axios
-      .get("http://localhost:3000/projects") // Adjust port if needed
+      .get("http://localhost:3000/projects")
       .then((res) => {
         setProjects(res.data);
       })

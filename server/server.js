@@ -25,7 +25,8 @@ app.use("/uploads", express.static("uploads"));
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend URL
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
@@ -154,6 +155,7 @@ app.post("/login", (req, res) => {
   });
   res.json({ success: true, message: "Logged in successfully" });
 });
+
 app.post("/createProject", upload.array("images"), (req, res) => {
   const { title, description } = req.body;
   console.log(
@@ -184,8 +186,6 @@ app.post("/createProject", upload.array("images"), (req, res) => {
     });
   }
 
-  // Here you would typically save the project to the database
-  // For now, we just return a success message
   res.json({
     success: true,
     message: "Project created successfully",
@@ -193,7 +193,7 @@ app.post("/createProject", upload.array("images"), (req, res) => {
   });
 });
 
-//Redirect user to dashboard if already ogged in
+//Redirect user to dashboard if already logged in
 app.get("/check-login", (req, res) => {
   if (req.user) {
     return res.json({ loggedIn: true, user: req.user });
@@ -201,6 +201,7 @@ app.get("/check-login", (req, res) => {
     return res.json({ loggedIn: false });
   }
 });
+
 app.get("/projects", (req, res) => {
   try {
     const rows = db.prepare("SELECT * FROM projects").all();
@@ -210,6 +211,7 @@ app.get("/projects", (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
 app.get("/projects/:id", (req, res) => {
   const { id } = req.params;
   try {
@@ -242,4 +244,28 @@ app.get("/projects/:id/images", (req, res) => {
   }
 });
 
+app.get("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.json({ success: true, message: "Logged out successfully" });
+});
+
+app.delete("/deleteProject/:id", (req, res) => {
+  console.log("delete accessed");
+  const { id } = req.params;
+  try {
+    const deleteStmt = db.prepare("DELETE FROM projects WHERE id = ?");
+    console.log("test 1 accessed");
+    const result = deleteStmt.run(Number(id));
+    console.log("test 2 accessed");
+    if (result.changes === 0) {
+      res.status(404).json({ error: "Project not found" });
+      console.log("test 3 accessed");
+    } else {
+      res.json({ success: true, message: "Project deleted successfully" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
 app.listen(3000);

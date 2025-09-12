@@ -22,7 +22,7 @@ function CreateProject() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
-    files.forEach((file) => formData.append("images", file)); // "images" matches backend
+    files.forEach((file) => formData.append("images", file));
 
     axios
       .post("http://localhost:3000/createProject", formData, {
