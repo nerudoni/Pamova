@@ -10,6 +10,7 @@ import Dashboard from "./pages/dashboard";
 import Manage from "./pages/manage";
 import CreateProject from "./pages/createProject";
 import ProjectPage from "./pages/projectpage";
+import VerifyOTP from "./pages/verifyOTP";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/manage" element={<Manage />} />
           <Route path="/createProject" element={<CreateProject />} />
           <Route path="/projects/:id" element={<ProjectPage />} />
+          <Route path="/verify" element={<VerifyOTP />} />
         </Routes>
       </Router>
     </>

@@ -1,4 +1,5 @@
 require("dotenv").config();
+const nodemailer = require("nodemailer");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -10,6 +11,14 @@ const multer = require("multer");
 const path = require("path");
 
 const app = express();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 // Configure storage location + filenames
 const storage = multer.diskStorage({
@@ -64,6 +73,15 @@ const createTables = db.transaction(() => {
       FOREIGN KEY (projectId) REFERENCES projects(id)
     )
     `
+  ).run();
+
+  db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS otp_codes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL,
+  code TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`
   ).run();
 });
 createTables();
@@ -193,6 +211,48 @@ app.post("/createProject", upload.array("images"), (req, res) => {
   });
 });
 
+app.post("/send-otp", async (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
+
+  try {
+    // Store OTP in DB
+    db.prepare("INSERT INTO otp_codes (email, code) VALUES (?, ?)").run(
+      email,
+      otp
+    );
+
+    // Send the OTP email
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Verification Code",
+      text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+    });
+
+    console.log("OTP sent:", otp);
+    res.json({ success: true, message: "OTP sent successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error sending OTP" });
+  }
+});
+
+app.post("/verify-otp", (req, res) => {
+  const { email, code } = req.body;
+
+  const result = db
+    .prepare("SELECT * FROM otp_codes WHERE email = ? AND code = ?")
+    .get(email, code);
+
+  if (result) {
+    db.prepare("DELETE FROM otp_codes WHERE email = ?").run(email); // delete after use
+    res.json({ success: true, message: "OTP verified successfully!" });
+  } else {
+    res.status(400).json({ error: "Invalid OTP or expired" });
+  }
+});
+
 //Redirect user to dashboard if already logged in
 app.get("/check-login", (req, res) => {
   if (req.user) {
@@ -268,4 +328,5 @@ app.delete("/deleteProject/:id", (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
 app.listen(3000);
