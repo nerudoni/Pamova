@@ -1,0 +1,212 @@
+/* Home.module.css */
+.homeContainer {
+  font-family: "Arial", sans-serif;
+  color: white;
+}
+
+/* Hero Section with Background Image */
+.heroSection {
+  background-image: url("./src/Files/construction1.png"); /* Your image path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh; /* Full viewport height */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Dark overlay for better text readability */
+.heroSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.heroContent h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Testimonial Section with Background Image */
+.testimonialSection {
+  background-image: url("./src/Files/construction2.png"); /* Your image path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* Parallax effect */
+  min-height: 80vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.testimonialSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6); /* Darker overlay for better contrast */
+}
+
+.sectionContent {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1000px;
+  padding: 60px 20px;
+}
+
+.textBox {
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.textBox h2 {
+  color: #f3c940; /* Gold color */
+  margin-bottom: 20px;
+  font-size: 2.2rem;
+}
+
+.textBox p {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  margin-bottom: 0;
+}
+
+/* History Section */
+.historySection {
+  padding: 80px 20px;
+  background: white;
+}
+
+.contentBox {
+  max-width: 1200px;
+  margin: 0 auto;
+  color: #333; /* Dark text for contrast against white background */
+}
+
+.contentBox h2 {
+  color: #10c7c7;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 2.5rem;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.contentBox h2:after {
+  content: "";
+  position: absolute;
+  width: 80px;
+  height: 3px;
+  background-color: #f3c940;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.historyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+@media (min-width: 768px) {
+  .historyContent {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .historyText {
+    flex: 2;
+  }
+
+  .ownerImage {
+    flex: 1;
+  }
+}
+
+.historyText p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.ownerImage {
+  text-align: center;
+}
+
+.ownerImage img {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .heroContent h1 {
+    font-size: 2.5rem;
+  }
+
+  .textBox {
+    padding: 30px 20px;
+  }
+
+  .textBox h2 {
+    font-size: 1.8rem;
+  }
+
+  .textBox p {
+    font-size: 1.1rem;
+  }
+
+  .contentBox h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroContent h1 {
+    font-size: 2rem;
+  }
+
+  .textBox {
+    padding: 20px 15px;
+  }
+
+  .textBox h2 {
+    font-size: 1.5rem;
+  }
+
+  .textBox p {
+    font-size: 1rem;
+  }
+}

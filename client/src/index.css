@@ -70,5 +70,10 @@ button:focus-visible {
 :root {
   margin: 0;
   font-family: Georgia;
+  padding-top: 80px;
+  padding-left: 0px;
   color: #333;
 }
+/* index.css */
+
+/* Or target your main app container if you have one */

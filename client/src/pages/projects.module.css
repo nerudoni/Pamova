@@ -1,0 +1,113 @@
+/* Projects.module.css */
+.projectsContainer {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: "Arial", sans-serif;
+  color: #333;
+}
+
+.pageTitle {
+  text-align: center;
+  color: #10c7c7;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+}
+
+/* Projects Grid */
+.projectsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 25px;
+}
+
+@media (min-width: 600px) {
+  .projectsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .projectsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .projectsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Project Card */
+.projectCard {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.projectCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.projectLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+
+/* Project Image */
+.projectImage {
+  height: 200px;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.projectImage::before {
+  content: "Project Image";
+  color: #999;
+  font-size: 1rem;
+}
+
+/* Project Info */
+.projectInfo {
+  padding: 20px;
+  border-top: 3px solid #f3c940;
+}
+
+.projectTitle {
+  color: #10c7c7;
+  margin: 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+/* No Projects Message */
+.noProjects {
+  text-align: center;
+  color: #666;
+  font-size: 1.2rem;
+  margin-top: 50px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 599px) {
+  .projectsGrid {
+    gap: 20px;
+  }
+
+  .projectImage {
+    height: 150px;
+  }
+
+  .projectInfo {
+    padding: 15px;
+  }
+}
