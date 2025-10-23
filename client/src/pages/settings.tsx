@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 function settings() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +38,7 @@ function settings() {
         "http://localhost:3000/register",
         {
           username,
+          email,
           password,
         },
         { withCredentials: true }
@@ -62,6 +64,17 @@ function settings() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                autoComplete="off"
+              />
+            </label>
+            <label htmlFor="email">
+              <small>email</small>
+              <input
+                id="email"
+                name="=email"
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="off"
               />
             </label>

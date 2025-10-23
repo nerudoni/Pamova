@@ -49,7 +49,9 @@ const createTables = db.transaction(() => {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL
+      
     )
     `
   ).run();
@@ -105,7 +107,7 @@ app.use(function (req, res, next) {
 });
 
 app.post("/register", (req, res) => {
-  let { username, password } = req.body;
+  let { username, email, password } = req.body;
   console.log("Recieved", username, password);
 
   //hash the password
@@ -113,10 +115,10 @@ app.post("/register", (req, res) => {
   password = bcrypt.hashSync(password, salt);
   //add to user database
   const addInfo = db.prepare(
-    "Insert INTO users (username, password) VALUES (?, ?)"
+    "Insert INTO users (username, email, password) VALUES (?, ?, ?)"
   );
   //get user id
-  const result = addInfo.run(username, password);
+  const result = addInfo.run(username, email, password);
   const lookupStatement = db.prepare("SELECT * FROM users WHERE id = ?");
   const userRow = lookupStatement.get(result.lastInsertRowid);
 
@@ -213,13 +215,19 @@ app.post("/createProject", upload.array("images"), (req, res) => {
 
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
-  const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
+  //Create a 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  const otpString = otp.toString(); // Explicit conversion
+
+  console.log("Raw OTP:", otp);
+  console.log("OTP as string:", otpString);
+  console.log("OTP string length:", otpString.length);
 
   try {
     // Store OTP in DB
     db.prepare("INSERT INTO otp_codes (email, code) VALUES (?, ?)").run(
       email,
-      otp
+      otpString
     );
 
     // Send the OTP email
@@ -247,10 +255,23 @@ app.post("/verify-otp", (req, res) => {
 
   if (result) {
     db.prepare("DELETE FROM otp_codes WHERE email = ?").run(email); // delete after use
-    res.json({ success: true, message: "OTP verified successfully!" });
+    res.json({ success: true, message: "OTP verified", email });
   } else {
     res.status(400).json({ error: "Invalid OTP or expired" });
   }
+});
+
+app.post("/reset-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const stmt = db.prepare("UPDATE users SET password = ? WHERE email = ?");
+  const result = stmt.run(hashedPassword, email);
+
+  if (result.changes === 0) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  res.json({ success: true, message: "Password updated successfully" });
 });
 
 //Redirect user to dashboard if already logged in

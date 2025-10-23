@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function VerifyOTP() {
   const styles: Record<string, CSSProperties> = {
@@ -34,6 +35,7 @@ function VerifyOTP() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const sendOtp = async () => {
     try {
@@ -49,13 +51,17 @@ function VerifyOTP() {
 
   const verifyOtp = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/verify-otp", {
+      const res = await axios.post("http://localhost:3000/verify-otp", {
         email,
         code: otp,
       });
-      setMessage(response.data.message || "OTP verified successfully!");
-    } catch (err: any) {
-      setMessage("Invalid OTP or verification failed.");
+
+      if (res.data.success) {
+        navigate("/resetPassword", { state: { email } });
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Invalid OTP");
     }
   };
 
