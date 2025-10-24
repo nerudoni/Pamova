@@ -42,7 +42,7 @@ function Manage() {
         <ul>
           {projects.map((project) => (
             <li key={project.id}>
-              <Link to={`/projects/${project.id}`}>
+              <Link to={`/manage/${project.id}`}>
                 <h2>{project.title}</h2>
               </Link>
               <button onClick={() => handleDeleteProject(project.id)}>X</button>

@@ -6,6 +6,8 @@ interface Project {
   id: number;
   title: string;
   description: string;
+  client: string;
+  location: string;
 }
 
 interface Image {
@@ -44,6 +46,8 @@ const ProjectPage: React.FC = () => {
     <div>
       <h1>{project.title}</h1>
       <p>{project.description}</p>
+      <p>Client: {project.client}</p>
+      <p>Location: {project.location}</p>
       <div id="images-div">
         {images.length > 0 ? (
           images.map((img) => (

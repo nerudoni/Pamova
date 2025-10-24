@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 function CreateProject() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [client, setClient] = useState("");
+  const [location, setLocation] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const navigate = useNavigate();
 
@@ -22,6 +24,8 @@ function CreateProject() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
+    formData.append("client", client);
+    formData.append("location", location);
     files.forEach((file) => formData.append("images", file));
 
     axios
@@ -64,6 +68,29 @@ function CreateProject() {
                 autoComplete="off"
               ></textarea>
             </label>
+            <label htmlFor="location">
+              <small>Location</small>
+              <input
+                id="location"
+                name="location"
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                autoComplete="off"
+              />
+            </label>
+            <label htmlFor="client">
+              <small>Client</small>
+              <input
+                id="client"
+                name="client"
+                type="text"
+                value={client}
+                onChange={(e) => setClient(e.target.value)}
+                autoComplete="off"
+              />
+            </label>
+
             <br />
             <label htmlFor="images">
               <small>Upload images</small>

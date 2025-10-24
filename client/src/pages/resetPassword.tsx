@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 
-export default function ResetPassword() {
+export default function resetPassword() {
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email;

@@ -12,6 +12,7 @@ import CreateProject from "./pages/createProject";
 import ProjectPage from "./pages/projectpage";
 import VerifyOTP from "./pages/verifyOTP";
 import ResetPassword from "./pages/resetPassword";
+import ManagePage from "./pages/managePage";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/projects/:id" element={<ProjectPage />} />
           <Route path="/verify" element={<VerifyOTP />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
+          <Route path="/manage/:id" element={<ManagePage />} />
         </Routes>
       </Router>
     </>

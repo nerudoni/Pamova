@@ -61,6 +61,8 @@ const createTables = db.transaction(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       description TEXT,
+      client TEXT,
+      location TEXT,
       userId INTEGER,
       FOREIGN KEY (userId) REFERENCES users(id)
     )
@@ -177,7 +179,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/createProject", upload.array("images"), (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, client, location } = req.body;
   console.log(
     "Creating project with title:",
     title,
@@ -187,11 +189,13 @@ app.post("/createProject", upload.array("images"), (req, res) => {
 
   //save into database
   const projectStatement = db.prepare(
-    "INSERT INTO projects (title, description, userId) VALUES (?, ?, ?)"
+    "INSERT INTO projects (title, description, client, location, userId) VALUES (?, ?, ?, ?, ?)"
   );
   const result = projectStatement.run(
     title,
     description,
+    client,
+    location,
     res.locals.user.userid
   );
   const projectId = result.lastInsertRowid;
@@ -209,7 +213,7 @@ app.post("/createProject", upload.array("images"), (req, res) => {
   res.json({
     success: true,
     message: "Project created successfully",
-    project: { title, description },
+    project: { title, description, client, location, id: projectId },
   });
 });
 
@@ -308,6 +312,20 @@ app.get("/projects/:id", (req, res) => {
   }
 });
 
+app.get("/manage/:id", (req, res) => {
+  const { id } = req.params;
+  try {
+    const row = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+    if (!row) {
+      res.status(404).json({ error: "Project not found" });
+    } else {
+      res.json(row);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
 app.get("/", (req, res) => {
   res.send("Hello World!!!");
 });
