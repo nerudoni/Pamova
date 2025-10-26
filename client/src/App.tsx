@@ -15,6 +15,7 @@ import ResetPassword from "./pages/resetPassword";
 import ManagePage from "./pages/managePage";
 import TimelinePage from "./pages/TimelinePage";
 import Notes from "./pages/notes";
+import ActivityLog from "./pages/activityLog";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/manage/:id" element={<ManagePage />} />
           <Route path="/timeline/:id" element={<TimelinePage />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/activityLog" element={<ActivityLog />} />
         </Routes>
       </Router>
     </>

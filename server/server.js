@@ -194,8 +194,25 @@ function logActivity(
   newValues = null
 ) {
   try {
+    // Defensive access: `req` may be a lightweight object (e.g. tempReq) or undefined.
     const ip =
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.ip;
+      (req &&
+        req.headers &&
+        (req.headers["x-forwarded-for"] || req.headers["x-forwarded-for"])) ||
+      (req && req.connection && req.connection.remoteAddress) ||
+      (req && req.ip) ||
+      null;
+
+    const user = req && req.user ? req.user : null;
+
+    if (!user || !user.userid) {
+      // Missing user info — skip logging to avoid DB constraint errors and TypeErrors.
+      console.warn(
+        "logActivity: missing user information, skipping activity log",
+        { actionType, resourceType, resourceId }
+      );
+      return;
+    }
 
     const stmt = db.prepare(`
       INSERT INTO activity_log (user_id, username, action_type, resource_type, resource_id, description, old_values, new_values, ip_address)
@@ -203,8 +220,8 @@ function logActivity(
     `);
 
     stmt.run(
-      req.user.userid,
-      req.user.username,
+      user.userid,
+      user.username || null,
       actionType,
       resourceType,
       resourceId,
@@ -215,7 +232,7 @@ function logActivity(
     );
 
     console.log(
-      `Activity logged: ${req.user.username} ${actionType} ${resourceType}`
+      `Activity logged: ${user.username} ${actionType} ${resourceType}`
     );
   } catch (error) {
     console.error("Error logging activity:", error);
@@ -256,6 +273,16 @@ app.post("/register", (req, res) => {
     maxAge: 1000 * 60 * 60 * 24,
   });
 
+  // Log registration activity
+  const tempReq = { user: { userid: userRow.id, username: userRow.username } };
+  logActivity(
+    tempReq,
+    "CREATE",
+    "USER",
+    userRow.id,
+    `User registered: ${username} (${email})`
+  );
+
   res.json({ success: true, message: "Received username and password!" });
 });
 
@@ -293,6 +320,10 @@ app.post("/login", (req, res) => {
     maxAge: 1000 * 60 * 60 * 24,
   });
 
+  // Log login activity
+  const tempReq = { user: { userid: user.id, username: user.username } };
+  logActivity(tempReq, "LOGIN", "USER", user.id, `User logged in`);
+
   res.json({ success: true, message: "Logged in successfully" });
 });
 
@@ -324,6 +355,17 @@ app.post("/createProject", requireAuth, upload.array("images"), (req, res) => {
       imageStmt.run(imagePath, projectId);
     });
   }
+
+  // Log project creation
+  logActivity(
+    req,
+    "CREATE",
+    "PROJECT",
+    projectId,
+    `Created project: ${title}`,
+    null,
+    { title, description, client, location }
+  );
 
   res.json({
     success: true,
@@ -381,6 +423,11 @@ app.put("/projects/:id", requireAuth, upload.array("images"), (req, res) => {
   }
 
   try {
+    // Get old values for logging
+    const oldProject = db
+      .prepare("SELECT * FROM projects WHERE id = ?")
+      .get(projectId);
+
     const stmt = db.prepare(`
       UPDATE projects 
       SET title = ?, description = ?, client = ?, location = ?
@@ -415,6 +462,24 @@ app.put("/projects/:id", requireAuth, upload.array("images"), (req, res) => {
       });
     }
 
+    // Log project update
+    const newValues = { title, description, client, location };
+    const oldValues = {
+      title: oldProject.title,
+      description: oldProject.description,
+      client: oldProject.client,
+      location: oldProject.location,
+    };
+    logActivity(
+      req,
+      "UPDATE",
+      "PROJECT",
+      projectId,
+      `Updated project: ${title}`,
+      oldValues,
+      newValues
+    );
+
     res.json({ message: "Project updated successfully" });
   } catch (error) {
     console.error("Error updating project:", error);
@@ -425,12 +490,27 @@ app.put("/projects/:id", requireAuth, upload.array("images"), (req, res) => {
 app.delete("/deleteProject/:id", requireAuth, (req, res) => {
   const { id } = req.params;
   try {
+    // Get project info for logging before deletion
+    const project = db
+      .prepare("SELECT * FROM projects WHERE id = ?")
+      .get(Number(id));
+
     const deleteStmt = db.prepare("DELETE FROM projects WHERE id = ?");
     const result = deleteStmt.run(Number(id));
 
     if (result.changes === 0) {
       res.status(404).json({ error: "Project not found" });
     } else {
+      // Log project deletion
+      logActivity(
+        req,
+        "DELETE",
+        "PROJECT",
+        Number(id),
+        `Deleted project: ${project.title}`,
+        { title: project.title, description: project.description }
+      );
+
       res.json({ success: true, message: "Project deleted successfully" });
     }
   } catch (err) {
@@ -619,7 +699,7 @@ app.post("/notes", requireAuth, (req, res) => {
     title,
     content,
     priority = "Medium",
-    shared_with = [], // Array of user IDs to share with
+    shared_with = [],
     can_edit = false,
   } = req.body;
   const user_id = req.user.userid;
@@ -629,7 +709,6 @@ app.post("/notes", requireAuth, (req, res) => {
   }
 
   try {
-    // Create the note
     const noteStmt = db.prepare(`
       INSERT INTO notes (user_id, title, content, priority) 
       VALUES (?, ?, ?, ?)
@@ -637,23 +716,45 @@ app.post("/notes", requireAuth, (req, res) => {
     const result = noteStmt.run(user_id, title, content, priority);
     const noteId = result.lastInsertRowid;
 
-    // Handle sharing if specified - FIXED: Convert boolean to integer
+    // Handle sharing if specified
     if (shared_with && shared_with.length > 0) {
       const shareStmt = db.prepare(`
         INSERT INTO note_shares (note_id, shared_by_user_id, shared_with_user_id, can_edit)
         VALUES (?, ?, ?, ?)
       `);
 
-      // Convert boolean to integer for SQLite
       const canEditInt = can_edit ? 1 : 0;
+
+      // Get usernames for logging
+      const userStmt = db.prepare(
+        "SELECT id, username FROM users WHERE id IN (" +
+          shared_with.map(() => "?").join(",") +
+          ")"
+      );
+      const sharedUsers = userStmt.all(...shared_with);
+      const sharedUsernames = sharedUsers.map((u) => u.username).join(", ");
 
       shared_with.forEach((userId) => {
         if (userId !== user_id) {
-          // Can't share with yourself
           shareStmt.run(noteId, user_id, userId, canEditInt);
         }
       });
+
+      // Log note sharing
+      logActivity(
+        req,
+        "SHARE",
+        "NOTE",
+        noteId,
+        `Shared note "${title}" with users: ${sharedUsernames} (edit: ${can_edit})`
+      );
     }
+
+    // Log note creation
+    logActivity(req, "CREATE", "NOTE", noteId, `Created note: ${title}`, null, {
+      title,
+      priority,
+    });
 
     res.json({ id: noteId, success: true });
   } catch (error) {
@@ -668,7 +769,9 @@ app.put("/notes/:id", requireAuth, (req, res) => {
   const userId = req.user.userid;
 
   try {
-    // Check if user owns the note or has edit permissions
+    // Get old values for logging
+    const oldNote = db.prepare("SELECT * FROM notes WHERE id = ?").get(noteId);
+
     const noteCheck = db
       .prepare(
         `
@@ -684,14 +787,12 @@ app.put("/notes/:id", requireAuth, (req, res) => {
       return res.status(404).json({ error: "Note not found or access denied" });
     }
 
-    // If shared note, check edit permissions
     if (noteCheck.user_id !== userId && !noteCheck.can_edit) {
       return res
         .status(403)
         .json({ error: "No edit permissions for this note" });
     }
 
-    // Update the note (only owner can update certain fields)
     const updateFields = [];
     const params = [];
 
@@ -712,7 +813,7 @@ app.put("/notes/:id", requireAuth, (req, res) => {
 
     if (is_done !== undefined) {
       updateFields.push("is_done = ?");
-      params.push(is_done ? 1 : 0); // FIXED: Convert boolean to integer
+      params.push(is_done ? 1 : 0);
     }
 
     if (updateFields.length > 0) {
@@ -723,14 +824,19 @@ app.put("/notes/:id", requireAuth, (req, res) => {
       stmt.run(...params);
     }
 
-    // Handle sharing updates (only owner)
+    // Handle sharing updates
     if (shared_with !== undefined && noteCheck.user_id === userId) {
-      // Remove existing shares
+      // Get current shares for logging
+      const currentShares = db
+        .prepare(
+          "SELECT shared_with_user_id FROM note_shares WHERE note_id = ? AND shared_by_user_id = ?"
+        )
+        .all(noteId, userId);
+
       db.prepare(
         "DELETE FROM note_shares WHERE note_id = ? AND shared_by_user_id = ?"
       ).run(noteId, userId);
 
-      // Add new shares - FIXED: Convert boolean to integer
       if (shared_with.length > 0) {
         const shareStmt = db.prepare(`
           INSERT INTO note_shares (note_id, shared_by_user_id, shared_with_user_id, can_edit)
@@ -739,12 +845,66 @@ app.put("/notes/:id", requireAuth, (req, res) => {
 
         const canEditInt = can_edit ? 1 : 0;
 
+        // Get usernames for logging
+        const userStmt = db.prepare(
+          "SELECT id, username FROM users WHERE id IN (" +
+            shared_with.map(() => "?").join(",") +
+            ")"
+        );
+        const sharedUsers = userStmt.all(...shared_with);
+        const sharedUsernames = sharedUsers.map((u) => u.username).join(", ");
+
         shared_with.forEach((shareUserId) => {
           if (shareUserId !== userId) {
             shareStmt.run(noteId, userId, shareUserId, canEditInt);
           }
         });
+
+        // Log sharing changes
+        logActivity(
+          req,
+          "SHARE",
+          "NOTE",
+          noteId,
+          `Updated sharing for note "${oldNote.title}" with users: ${sharedUsernames} (edit: ${can_edit})`
+        );
+      } else if (currentShares.length > 0) {
+        // Log removal of all shares
+        logActivity(
+          req,
+          "SHARE",
+          "NOTE",
+          noteId,
+          `Removed all shares for note: ${oldNote.title}`
+        );
       }
+    }
+
+    // Log note update
+    if (updateFields.length > 0) {
+      const newValues = {};
+      if (title !== undefined) newValues.title = title;
+      if (content !== undefined)
+        newValues.content = content.substring(0, 100) + "..."; // Truncate long content
+      if (priority !== undefined) newValues.priority = priority;
+      if (is_done !== undefined) newValues.is_done = is_done;
+
+      const oldValues = {
+        title: oldNote.title,
+        content: oldNote.content.substring(0, 100) + "...",
+        priority: oldNote.priority,
+        is_done: oldNote.is_done,
+      };
+
+      logActivity(
+        req,
+        "UPDATE",
+        "NOTE",
+        noteId,
+        `Updated note: ${oldNote.title}`,
+        oldValues,
+        newValues
+      );
     }
 
     res.json({ success: true });
@@ -759,7 +919,7 @@ app.delete("/notes/:id", requireAuth, (req, res) => {
   const userId = req.user.userid;
 
   try {
-    // Check if user owns the note
+    // Get note info for logging before deletion
     const note = db
       .prepare("SELECT * FROM notes WHERE id = ? AND user_id = ?")
       .get(noteId, userId);
@@ -771,6 +931,11 @@ app.delete("/notes/:id", requireAuth, (req, res) => {
     // Delete shares first, then note
     db.prepare("DELETE FROM note_shares WHERE note_id = ?").run(noteId);
     db.prepare("DELETE FROM notes WHERE id = ?").run(noteId);
+
+    // Log note deletion
+    logActivity(req, "DELETE", "NOTE", noteId, `Deleted note: ${note.title}`, {
+      title: note.title,
+    });
 
     res.json({ success: true });
   } catch (error) {
@@ -794,6 +959,184 @@ app.get("/users", requireAuth, (req, res) => {
   }
 });
 
+// Activity log routes
+app.get("/activity-log", requireAuth, (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 50,
+      user_id,
+      action_type,
+      resource_type,
+      start_date,
+      end_date,
+      search,
+    } = req.query;
+
+    let whereConditions = ["1=1"];
+    let params = [];
+
+    // Build filter conditions
+    if (user_id) {
+      whereConditions.push("al.user_id = ?");
+      params.push(user_id);
+    }
+
+    if (action_type) {
+      whereConditions.push("al.action_type = ?");
+      params.push(action_type);
+    }
+
+    if (resource_type) {
+      whereConditions.push("al.resource_type = ?");
+      params.push(resource_type);
+    }
+
+    if (start_date) {
+      whereConditions.push("DATE(al.created_at) >= ?");
+      params.push(start_date);
+    }
+
+    if (end_date) {
+      whereConditions.push("DATE(al.created_at) <= ?");
+      params.push(end_date);
+    }
+
+    if (search) {
+      whereConditions.push("(al.description LIKE ? OR al.username LIKE ?)");
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    const whereClause = whereConditions.join(" AND ");
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const countStmt = db.prepare(`
+      SELECT COUNT(*) as total 
+      FROM activity_log al 
+      WHERE ${whereClause}
+    `);
+    const totalResult = countStmt.get(...params);
+    const total = totalResult.total;
+
+    // Get activity logs
+    const stmt = db.prepare(`
+      SELECT 
+        al.*,
+        u.username as performer_username
+      FROM activity_log al
+      LEFT JOIN users u ON al.user_id = u.id
+      WHERE ${whereClause}
+      ORDER BY al.created_at DESC
+      LIMIT ? OFFSET ?
+    `);
+
+    const activities = stmt.all(...params, limit, offset);
+
+    res.json({
+      activities,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching activity log:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/activity-log/stats", requireAuth, (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+
+    // Recent activity count
+    const recentStmt = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM activity_log 
+      WHERE created_at >= datetime('now', ?)
+    `);
+    const recent = recentStmt.get(`-${days} days`);
+
+    // Activity by type
+    const byTypeStmt = db.prepare(`
+      SELECT action_type, COUNT(*) as count
+      FROM activity_log
+      WHERE created_at >= datetime('now', ?)
+      GROUP BY action_type
+      ORDER BY count DESC
+    `);
+    const byType = byTypeStmt.all(`-${days} days`);
+
+    // Most active users
+    const activeUsersStmt = db.prepare(`
+      SELECT username, COUNT(*) as activity_count
+      FROM activity_log
+      WHERE created_at >= datetime('now', ?)
+      GROUP BY user_id, username
+      ORDER BY activity_count DESC
+      LIMIT 10
+    `);
+    const activeUsers = activeUsersStmt.all(`-${days} days`);
+
+    res.json({
+      recent_activity: recent.count,
+      activity_by_type: byType,
+      most_active_users: activeUsers,
+    });
+  } catch (error) {
+    console.error("Error fetching activity stats:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// Get available filter options
+app.get("/activity-log/filters", requireAuth, (req, res) => {
+  try {
+    const actionTypes = db
+      .prepare(
+        `
+      SELECT DISTINCT action_type 
+      FROM activity_log 
+      ORDER BY action_type
+    `
+      )
+      .all()
+      .map((row) => row.action_type);
+
+    const resourceTypes = db
+      .prepare(
+        `
+      SELECT DISTINCT resource_type 
+      FROM activity_log 
+      ORDER BY resource_type
+    `
+      )
+      .all()
+      .map((row) => row.resource_type);
+
+    const users = db
+      .prepare(
+        `
+      SELECT DISTINCT al.user_id, al.username 
+      FROM activity_log al 
+      ORDER BY al.username
+    `
+      )
+      .all();
+
+    res.json({
+      action_types: actionTypes,
+      resource_types: resourceTypes,
+      users: users,
+    });
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
 // Utility routes
 app.get("/check-login", (req, res) => {
   if (req.user) {
