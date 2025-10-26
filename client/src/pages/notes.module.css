@@ -1,0 +1,221 @@
+/* Core notes page styles (added to support NotesPage) */
+.notesContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.noteForm {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.formOptions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.notesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.note {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.done {
+  opacity: 0.6;
+}
+
+.noteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.noteMeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: #666;
+}
+
+.shared {
+  background: #f0f8ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.author {
+  font-size: 13px;
+  color: #888;
+}
+
+.noteContent {
+  flex: 1 1 auto;
+  margin: 8px 0 12px 0;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+.noteActions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.doneBtn {
+  background: #10c7c7;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.noteFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #999;
+}
+
+.priority {
+  font-weight: 600;
+}
+
+.date {
+  font-size: 12px;
+}
+
+/* Add to existing notes.module.css */
+
+.shareSection {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.shareSection label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.userSelect {
+  width: 100%;
+  min-height: 100px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.sharedNote {
+  background: #e3f2fd !important;
+}
+
+.shareBtn {
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid #10c7c7;
+  color: #10c7c7;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 400px;
+  max-width: 500px;
+}
+
+.modal h3 {
+  margin: 0 0 15px 0;
+}
+
+.shareOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modalActions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modalActions button:first-child {
+  background: #f0f0f0;
+}
+
+.modalActions button:last-child {
+  background: #10c7c7;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modal {
+    min-width: 90%;
+    margin: 20px;
+  }
+
+  .formOptions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

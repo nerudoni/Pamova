@@ -13,6 +13,8 @@ import ProjectPage from "./pages/projectpage";
 import VerifyOTP from "./pages/verifyOTP";
 import ResetPassword from "./pages/resetPassword";
 import ManagePage from "./pages/managePage";
+import TimelinePage from "./pages/TimelinePage";
+import Notes from "./pages/notes";
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           <Route path="/verify" element={<VerifyOTP />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/manage/:id" element={<ManagePage />} />
+          <Route path="/timeline/:id" element={<TimelinePage />} />
+          <Route path="/notes" element={<Notes />} />
         </Routes>
       </Router>
     </>

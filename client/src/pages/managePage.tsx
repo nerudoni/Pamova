@@ -24,31 +24,38 @@ const ManagePage: React.FC = () => {
   const [description, setDescription] = useState("");
   const [client, setClient] = useState("");
   const [location, setLocation] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<number[]>([]); // IDs of images to remove
 
   const handleEdit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("client", client);
+    formData.append("location", location);
+
+    // Append images to delete
+    imagesToDelete.forEach((id) => {
+      formData.append("imagesToDelete", id.toString());
+    });
+
+    // Append new files
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+
     axios
-      .put(
-        `http://localhost:3000/projects/${id}`,
-        {
-          title,
-          description,
-          client,
-          location,
-        },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      )
+      .put(`http://localhost:3000/projects/${id}`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then((response) => {
         console.log("Project updated:", response.data);
         alert("Project updated successfully!");
-        // Optionally refresh the project data
-        setProject((prev) =>
-          prev ? { ...prev, title, description, client, location } : null
-        );
+        // Refresh the page or update state to reflect changes
+        window.location.reload(); // Simple solution, or you can update state
       })
       .catch((error) => {
         console.error("Error updating project:", error);
@@ -170,10 +177,78 @@ const ManagePage: React.FC = () => {
               </label>
 
               <br />
+              <div id="images-div">
+                <h3>Current Images</h3>
+                {images.length > 0 ? (
+                  images.map((img) => {
+                    const isMarkedForDeletion = imagesToDelete.includes(img.id);
+
+                    return (
+                      <div
+                        key={img.id}
+                        style={{
+                          display: "inline-block",
+                          margin: "10px",
+                          opacity: isMarkedForDeletion ? 0.5 : 1,
+                        }}
+                      >
+                        <img
+                          src={`http://localhost:3000${img.image_url}`}
+                          alt={`Project ${project.title}`}
+                          style={{
+                            width: "150px",
+                            height: "150px",
+                            objectFit: "cover",
+                            border: isMarkedForDeletion
+                              ? "2px solid red"
+                              : "none",
+                          }}
+                        />
+                        <br />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isMarkedForDeletion) {
+                              setImagesToDelete((prev) =>
+                                prev.filter((id) => id !== img.id)
+                              );
+                            } else {
+                              setImagesToDelete((prev) => [...prev, img.id]);
+                            }
+                          }}
+                          style={{
+                            color: isMarkedForDeletion ? "green" : "red",
+                          }}
+                        >
+                          {isMarkedForDeletion ? "Undo Remove" : "Remove"}
+                        </button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p>No images for this project.</p>
+                )}
+              </div>
+
+              {/* Add new images section */}
+              <label htmlFor="images">
+                <small>Add New Images</small>
+                <input
+                  type="file"
+                  name="images"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFiles(Array.from(e.target.files));
+                    }
+                  }}
+                />
+              </label>
               <button type="submit">Update</button>
             </fieldset>
           </form>
         </main>
+        <a href={`/timeline/${id}`}>Go to Timeline Page</a>
       </>
     </>
   );
