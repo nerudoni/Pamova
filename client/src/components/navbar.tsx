@@ -8,6 +8,7 @@ const Navbar: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentPath, setCurrentPath] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     // Check login status
@@ -23,6 +24,14 @@ const Navbar: React.FC = () => {
 
     // Get current path
     setCurrentPath(window.location.pathname);
+
+    // Handle scroll effect for navbar
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMenu = () => {
@@ -38,8 +47,8 @@ const Navbar: React.FC = () => {
     "/",
     "/about",
     "/projects",
+    "/services",
     "/contact",
-    "/login",
   ].includes(currentPath);
 
   // Check if we're on an employee-only page
@@ -55,12 +64,13 @@ const Navbar: React.FC = () => {
       )}
 
       {/* Navigation bar */}
-      <nav className={styles.navbar}>
+      <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ""}`}>
         <div className={styles.navContainer}>
           {/* Logo - always goes to homepage */}
           <div className={styles.logo}>
             <a href="/" onClick={closeMenu}>
-              Pamova
+              <span className={styles.logoText}>Pamova</span>
+              <span className={styles.logoSubtitle}>CONSTRUCTION</span>
             </a>
           </div>
 
@@ -72,14 +82,22 @@ const Navbar: React.FC = () => {
             {isPublicPage && (
               <>
                 <li className={styles.navItem}>
-                  <a href="/" className={styles.navLink} onClick={closeMenu}>
+                  <a
+                    href="/"
+                    className={`${styles.navLink} ${
+                      currentPath === "/" ? styles.active : ""
+                    }`}
+                    onClick={closeMenu}
+                  >
                     Home
                   </a>
                 </li>
                 <li className={styles.navItem}>
                   <a
                     href="/about"
-                    className={styles.navLink}
+                    className={`${styles.navLink} ${
+                      currentPath === "/about" ? styles.active : ""
+                    }`}
                     onClick={closeMenu}
                   >
                     About
@@ -87,8 +105,21 @@ const Navbar: React.FC = () => {
                 </li>
                 <li className={styles.navItem}>
                   <a
+                    href="/services"
+                    className={`${styles.navLink} ${
+                      currentPath === "/services" ? styles.active : ""
+                    }`}
+                    onClick={closeMenu}
+                  >
+                    Services
+                  </a>
+                </li>
+                <li className={styles.navItem}>
+                  <a
                     href="/projects"
-                    className={styles.navLink}
+                    className={`${styles.navLink} ${
+                      currentPath === "/projects" ? styles.active : ""
+                    }`}
                     onClick={closeMenu}
                   >
                     Projects
@@ -97,7 +128,9 @@ const Navbar: React.FC = () => {
                 <li className={styles.navItem}>
                   <a
                     href="/contact"
-                    className={styles.navLink}
+                    className={`${styles.navLink} ${
+                      currentPath === "/contact" ? styles.active : ""
+                    }`}
                     onClick={closeMenu}
                   >
                     Contact
@@ -112,7 +145,9 @@ const Navbar: React.FC = () => {
                 <li className={styles.navItem}>
                   <a
                     href="/dashboard"
-                    className={styles.navLink}
+                    className={`${styles.navLink} ${
+                      currentPath === "/dashboard" ? styles.active : ""
+                    }`}
                     onClick={closeMenu}
                   >
                     Dashboard
@@ -121,7 +156,9 @@ const Navbar: React.FC = () => {
                 <li className={styles.navItem}>
                   <a
                     href="/manage"
-                    className={styles.navLink}
+                    className={`${styles.navLink} ${
+                      currentPath === "/manage" ? styles.active : ""
+                    }`}
                     onClick={closeMenu}
                   >
                     Manage
@@ -130,7 +167,9 @@ const Navbar: React.FC = () => {
                 <li className={styles.navItem}>
                   <a
                     href="/settings"
-                    className={styles.navLink}
+                    className={`${styles.navLink} ${
+                      currentPath === "/settings" ? styles.active : ""
+                    }`}
                     onClick={closeMenu}
                   >
                     Settings
@@ -163,13 +202,13 @@ const Navbar: React.FC = () => {
                   </a>
                 )
               ) : (
-                // Not logged in: Show Login button
+                // Not logged in: Show Consultation CTA (turquoise accent)
                 <a
-                  href="/login"
-                  className={styles.loginBtn}
+                  href="/consultation"
+                  className={styles.consultationBtn}
                   onClick={closeMenu}
                 >
-                  Login
+                  Request Consultation
                 </a>
               )}
             </li>

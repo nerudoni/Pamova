@@ -1,13 +1,21 @@
 /* Navbar.module.css */
 .navbar {
-  position: fixed; /* Stays at top when scrolling */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 20px 0;
-  background: white; /* Solid white background */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px 0;
+  background: rgba(15, 17, 22, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(42, 45, 50, 0.3);
   z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  padding: 10px 0;
+  background: rgba(15, 17, 22, 0.98);
+  box-shadow: 0 2px 30px rgba(0, 0, 0, 0.3);
 }
 
 .navContainer {
@@ -15,22 +23,42 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 40px;
 }
 
 /* Logo styling */
 .logo a {
-  color: #10c7c7; /* Teal color */
-  font-size: 24px;
-  font-weight: bold;
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
-.logo a:hover {
-  color: #f3c940; /* Gold color on hover */
+.logoText {
+  color: #f8f7f4;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.logoSubtitle {
+  color: #b08d57;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.logo a:hover .logoText {
+  color: #b08d57;
+}
+
+.logo a:hover .logoSubtitle {
+  color: #f8f7f4;
 }
 
 /* Navigation menu */
@@ -39,31 +67,35 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 
 .navItem {
-  margin: 0 15px;
+  margin: 0 12px;
 }
 
 .navLink {
-  color: #333; /* Dark text color */
+  color: #f8f7f4;
   text-decoration: none;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 15px;
   padding: 8px 0;
   position: relative;
   transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: "Inter", sans-serif;
 }
 
-/* Gold underline effect on hover */
+/* Bronze underline effect */
 .navLink:after {
   content: "";
   position: absolute;
   width: 0;
-  height: 2px;
+  height: 1px;
   bottom: 0;
   left: 0;
-  background-color: #f3c940; /* Gold color */
+  background-color: #b08d57;
   transition: all 0.3s ease;
 }
 
@@ -72,58 +104,84 @@
 }
 
 .navLink:hover {
-  color: #10c7c7; /* Teal color on hover */
+  color: #b08d57;
 }
 
-/* Login button special styling */
-.loginBtn {
-  background-color: #10c7c7; /* Teal color */
-  color: white !important;
-  padding: 8px 20px;
-  border-radius: 25px;
+.navLink.active {
+  color: #48d1cc;
+}
+
+.navLink.active:after {
+  width: 100%;
+  background-color: #48d1cc;
+}
+
+/* Consultation button - turquoise accent */
+.consultationBtn {
+  background-color: #48d1cc;
+  color: #0f1116 !important;
+  padding: 12px 24px;
+  border-radius: 2px;
   text-decoration: none;
   transition: all 0.3s ease;
   display: inline-block;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
-.loginBtn:hover {
-  background-color: #f3c940; /* Gold color */
+.consultationBtn:hover {
+  background-color: #3abeb9;
   transform: translateY(-2px);
-  color: white !important;
+  box-shadow: 0 5px 15px rgba(72, 209, 204, 0.3);
+}
+
+.consultationBtn:active {
+  transform: translateY(0);
 }
 
 /* Dashboard button styling */
 .dashboardBtn {
-  background-color: #10c7c7; /* Teal color */
-  color: white !important;
-  padding: 8px 20px;
-  border-radius: 25px;
+  background-color: #2a2d32;
+  color: #f8f7f4 !important;
+  padding: 10px 20px;
+  border-radius: 2px;
   text-decoration: none;
   transition: all 0.3s ease;
   display: inline-block;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid #b08d57;
 }
 
 .dashboardBtn:hover {
-  background-color: #f3c940; /* Gold color */
+  background-color: #b08d57;
+  color: #0f1116 !important;
   transform: translateY(-2px);
-  color: white !important;
 }
 
 /* Logout button specific styling */
 .logoutBtn {
-  background-color: #e53e3e; /* Red color for logout */
-  color: white !important;
-  padding: 8px 20px;
-  border-radius: 25px;
+  background-color: #2a2d32;
+  color: #f8f7f4 !important;
+  padding: 10px 20px;
+  border-radius: 2px;
   text-decoration: none;
   transition: all 0.3s ease;
   display: inline-block;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid #dc2626;
 }
 
 .logoutBtn:hover {
-  background-color: #c53030; /* Darker red on hover */
+  background-color: #dc2626;
   transform: translateY(-2px);
-  color: white !important;
 }
 
 /* Hamburger menu - hidden by default */
@@ -131,14 +189,17 @@
   display: none;
   flex-direction: column;
   cursor: pointer;
-  padding: 5px;
+  padding: 8px;
+  background: #2a2d32;
+  border-radius: 2px;
+  border: 1px solid #b08d57;
 }
 
 .bar {
-  width: 25px;
+  width: 22px;
   height: 2px;
-  background-color: #10c7c7; /* Teal color */
-  margin: 3px 0;
+  background-color: #b08d57;
+  margin: 2px 0;
   transition: all 0.3s ease;
 }
 
@@ -149,12 +210,26 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(15, 17, 22, 0.8);
   z-index: 998;
   display: none;
 }
 
 /* Media queries for responsive design */
+@media screen and (max-width: 968px) {
+  .navContainer {
+    padding: 0 20px;
+  }
+
+  .navItem {
+    margin: 0 8px;
+  }
+
+  .navLink {
+    font-size: 14px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   /* Show hamburger menu on mobile/tablet */
   .hamburger {
@@ -167,11 +242,11 @@
     left: -100%;
     top: 0;
     flex-direction: column;
-    background-color: white;
-    width: 70%;
+    background-color: #0f1116;
+    width: 280px;
     height: 100vh;
-    padding-top: 80px;
-    box-shadow: 5px 0px 15px rgba(0, 0, 0, 0.1);
+    padding-top: 100px;
+    border-right: 1px solid #2a2d32;
     transition: left 0.4s ease;
     z-index: 999;
   }
@@ -183,9 +258,16 @@
 
   /* Style mobile menu items */
   .navItem {
-    margin: 20px 0;
+    margin: 15px 0;
     text-align: left;
-    padding-left: 30px;
+    padding-left: 40px;
+    width: 100%;
+  }
+
+  .navLink {
+    font-size: 16px;
+    padding: 12px 0;
+    display: block;
   }
 
   /* Show backdrop when mobile menu is active */
@@ -195,7 +277,7 @@
 
   /* Animate hamburger to X when active */
   .hamburger.active .bar:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
+    transform: rotate(45deg) translate(6px, 6px);
   }
 
   .hamburger.active .bar:nth-child(2) {
@@ -203,6 +285,28 @@
   }
 
   .hamburger.active .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+
+  .consultationBtn,
+  .dashboardBtn,
+  .logoutBtn {
+    margin-left: 40px;
+    display: inline-block;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .logoText {
+    font-size: 24px;
+  }
+
+  .logoSubtitle {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+
+  .navContainer {
+    padding: 0 15px;
   }
 }
