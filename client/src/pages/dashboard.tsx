@@ -1,7 +1,8 @@
+// Dashboard.tsx
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import styles from "./dashboard.module.css"; // Import the CSS module
+import styles from "./Dashboard.module.css";
 
 interface User {
   userid: number;
@@ -162,12 +163,20 @@ function Dashboard() {
 
   return (
     <div className={styles.dashboard}>
+      {/* Header Section */}
       <header className={styles.dashboardHeader}>
-        <h1>
-          {user?.type === "admin" || user?.type === "owner"
-            ? `Welcome, ${user.displayName}`
-            : `Hello, ${user?.displayName}`}
-        </h1>
+        <div className={styles.headerContent}>
+          <h1>
+            {user?.type === "admin" || user?.type === "owner"
+              ? `Welcome, ${user.displayName}`
+              : `Hello, ${user?.displayName}`}
+          </h1>
+          <p className={styles.welcomeMessage}>
+            {user?.type === "admin" || user?.type === "owner"
+              ? "Project Management Dashboard"
+              : "Your Project Overview"}
+          </p>
+        </div>
         {(user?.type === "admin" || user?.type === "owner") && (
           <Link to="/activity-log" className={styles.adminLink}>
             View Activity Log
@@ -175,6 +184,44 @@ function Dashboard() {
         )}
       </header>
 
+      {/* Quick Actions - Top Section */}
+      <section className={`${styles.dashboardSection} ${styles.quickActions}`}>
+        <h2 className={styles.sectionTitle}>Quick Actions</h2>
+        <div className={styles.actionsGrid}>
+          <Link to="/createProject" className={styles.actionCard}>
+            <div className={styles.actionContent}>
+              <h3>Create New Project</h3>
+              <p>Start a new construction project</p>
+            </div>
+            <div className={styles.actionArrow}>→</div>
+          </Link>
+          <Link to="/notes" className={styles.actionCard}>
+            <div className={styles.actionContent}>
+              <h3>Add Note</h3>
+              <p>Create a new note or reminder</p>
+            </div>
+            <div className={styles.actionArrow}>→</div>
+          </Link>
+          <Link to="/manage" className={styles.actionCard}>
+            <div className={styles.actionContent}>
+              <h3>Manage Projects</h3>
+              <p>Edit existing projects</p>
+            </div>
+            <div className={styles.actionArrow}>→</div>
+          </Link>
+          {(user?.type === "admin" || user?.type === "owner") && (
+            <Link to="/admin/users" className={styles.actionCard}>
+              <div className={styles.actionContent}>
+                <h3>User Management</h3>
+                <p>Manage team members</p>
+              </div>
+              <div className={styles.actionArrow}>→</div>
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {/* Main Dashboard Grid */}
       <div className={styles.dashboardGrid}>
         {/* Ongoing Projects Section */}
         <section className={styles.dashboardSection}>
@@ -281,33 +328,6 @@ function Dashboard() {
           ) : (
             <p className={styles.noData}>No notes yet</p>
           )}
-        </section>
-
-        {/* Quick Actions Section */}
-        <section
-          className={`${styles.dashboardSection} ${styles.quickActions}`}
-        >
-          <h2>Quick Actions</h2>
-          <div className={styles.actionsGrid}>
-            <Link to="/createProject" className={styles.actionCard}>
-              <h3>Create New Project</h3>
-              <p>Start a new construction project</p>
-            </Link>
-            <Link to="/notes" className={styles.actionCard}>
-              <h3>Add Note</h3>
-              <p>Create a new note or reminder</p>
-            </Link>
-            <Link to="/manage" className={styles.actionCard}>
-              <h3>Manage Projects</h3>
-              <p>Edit existing projects</p>
-            </Link>
-            {(user?.type === "admin" || user?.type === "owner") && (
-              <Link to="/admin/users" className={styles.actionCard}>
-                <h3>User Management</h3>
-                <p>Manage team members</p>
-              </Link>
-            )}
-          </div>
         </section>
       </div>
     </div>
