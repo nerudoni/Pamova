@@ -348,6 +348,36 @@ app.get("/logout", (req, res) => {
   res.json({ success: true, message: "Logged out successfully" });
 });
 
+app.put("/projects/:id", (req, res) => {
+  const projectId = req.params.id;
+  const { title, description, client, location } = req.body;
+
+  // Validate required fields
+  if (!title || !description || !client || !location) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    // Update project in database
+    const stmt = db.prepare(`
+      UPDATE projects 
+      SET title = ?, description = ?, client = ?, location = ?
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(title, description, client, location, projectId);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    res.json({ message: "Project updated successfully" });
+  } catch (error) {
+    console.error("Error updating project:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.delete("/deleteProject/:id", (req, res) => {
   console.log("delete accessed");
   const { id } = req.params;

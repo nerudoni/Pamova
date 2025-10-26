@@ -25,7 +25,36 @@ const ManagePage: React.FC = () => {
   const [client, setClient] = useState("");
   const [location, setLocation] = useState("");
 
-  const handleEdit = (e: React.FormEvent) => {};
+  const handleEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    axios
+      .put(
+        `http://localhost:3000/projects/${id}`,
+        {
+          title,
+          description,
+          client,
+          location,
+        },
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+      .then((response) => {
+        console.log("Project updated:", response.data);
+        alert("Project updated successfully!");
+        // Optionally refresh the project data
+        setProject((prev) =>
+          prev ? { ...prev, title, description, client, location } : null
+        );
+      })
+      .catch((error) => {
+        console.error("Error updating project:", error);
+        alert("Error updating project");
+      });
+  };
   useEffect(() => {
     axios
       .get(`http://localhost:3000/manage/${id}`)
@@ -141,7 +170,7 @@ const ManagePage: React.FC = () => {
               </label>
 
               <br />
-              <button type="submit">Create</button>
+              <button type="submit">Update</button>
             </fieldset>
           </form>
         </main>
