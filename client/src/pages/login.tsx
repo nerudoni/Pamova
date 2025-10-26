@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import styles from "./Login.module.css";
 
 function login() {
-  const [username, setUsername] = React.useState("");
+  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const navigate = useNavigate();
 
@@ -22,12 +22,12 @@ function login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(username, password);
+    console.log(email, password);
     try {
       const response = await axios.post(
         "http://localhost:3000/login",
         {
-          username,
+          email,
           password,
         },
         { withCredentials: true }
@@ -46,18 +46,18 @@ function login() {
         <h1 className={styles.loginTitle}>Login to Your Account</h1>
         <form onSubmit={handleLogin} className={styles.loginForm}>
           <div className={styles.formGroup}>
-            <label htmlFor="username" className={styles.formLabel}>
-              Username
+            <label htmlFor="email" className={styles.formLabel}>
+              Email
             </label>
             <input
-              id="username"
-              name="username"
+              id="email"
+              name="email"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               autoComplete="off"
               className={styles.formInput}
-              placeholder="Enter your username"
+              placeholder="Enter your email"
             />
           </div>
           <div className={styles.formGroup}>

@@ -42,19 +42,24 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Database setup
+// Database setup - UPDATED USER SCHEMA
 const createTables = db.transaction(() => {
   db.prepare(
     `
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      password TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'employee',
+      phone_number TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     `
   ).run();
 
+  // ... rest of your table creations remain the same
   db.prepare(
     `
     CREATE TABLE IF NOT EXISTS projects (
@@ -162,6 +167,13 @@ const createTables = db.transaction(() => {
 });
 createTables();
 
+// Helper function to get display name (for backward compatibility)
+function getDisplayName(user) {
+  return user.first_name && user.last_name
+    ? `${user.first_name} ${user.last_name}`
+    : user.email.split("@")[0]; // Fallback to email username part
+}
+
 // Authentication middleware
 app.use(function (req, res, next) {
   res.locals.errors = [];
@@ -194,7 +206,6 @@ function logActivity(
   newValues = null
 ) {
   try {
-    // Defensive access: `req` may be a lightweight object (e.g. tempReq) or undefined.
     const ip =
       (req &&
         req.headers &&
@@ -206,7 +217,6 @@ function logActivity(
     const user = req && req.user ? req.user : null;
 
     if (!user || !user.userid) {
-      // Missing user info — skip logging to avoid DB constraint errors and TypeErrors.
       console.warn(
         "logActivity: missing user information, skipping activity log",
         { actionType, resourceType, resourceId }
@@ -221,7 +231,7 @@ function logActivity(
 
     stmt.run(
       user.userid,
-      user.username || null,
+      user.displayName || user.email || null,
       actionType,
       resourceType,
       resourceId,
@@ -232,67 +242,121 @@ function logActivity(
     );
 
     console.log(
-      `Activity logged: ${user.username} ${actionType} ${resourceType}`
+      `Activity logged: ${
+        user.displayName || user.email
+      } ${actionType} ${resourceType}`
     );
   } catch (error) {
     console.error("Error logging activity:", error);
-    // Don't throw error - we don't want activity logging to break main functionality
   }
 }
 
 // Auth routes
+// Auth routes - UPDATED FOR NEW SCHEMA
 app.post("/register", (req, res) => {
-  let { username, email, password } = req.body;
-  console.log("Received", username, password);
+  let {
+    email,
+    first_name,
+    last_name,
+    password,
+    type = "employee",
+    phone_number,
+  } = req.body;
+  console.log("Received registration for:", email);
+
+  // Validation
+  if (!email || !first_name || !last_name || !password) {
+    return res.status(400).json({
+      error: "Email, first name, last name, and password are required",
+    });
+  }
+
+  // Validate user type
+  const validTypes = ["admin", "owner", "employee"];
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({ error: "Invalid user type" });
+  }
 
   const salt = bcrypt.genSaltSync(10);
   password = bcrypt.hashSync(password, salt);
 
   const addInfo = db.prepare(
-    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)"
+    "INSERT INTO users (email, first_name, last_name, password, type, phone_number) VALUES (?, ?, ?, ?, ?, ?)"
   );
 
-  const result = addInfo.run(username, email, password);
-  const lookupStatement = db.prepare("SELECT * FROM users WHERE id = ?");
-  const userRow = lookupStatement.get(result.lastInsertRowid);
+  try {
+    const result = addInfo.run(
+      email,
+      first_name,
+      last_name,
+      password,
+      type,
+      phone_number
+    );
+    const lookupStatement = db.prepare("SELECT * FROM users WHERE id = ?");
+    const userRow = lookupStatement.get(result.lastInsertRowid);
 
-  const token = jwt.sign(
-    {
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
-      skyColor: "red",
-      userid: userRow.id,
-      username: userRow.username,
-    },
-    process.env.JWTSECRET
-  );
+    const displayName = getDisplayName(userRow);
 
-  res.cookie("username", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "Strict",
-    maxAge: 1000 * 60 * 60 * 24,
-  });
+    const token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+        userid: userRow.id,
+        email: userRow.email,
+        displayName: displayName,
+        type: userRow.type,
+      },
+      process.env.JWTSECRET
+    );
 
-  // Log registration activity
-  const tempReq = { user: { userid: userRow.id, username: userRow.username } };
-  logActivity(
-    tempReq,
-    "CREATE",
-    "USER",
-    userRow.id,
-    `User registered: ${username} (${email})`
-  );
+    res.cookie("username", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "Strict",
+      maxAge: 1000 * 60 * 60 * 24,
+    });
 
-  res.json({ success: true, message: "Received username and password!" });
+    // Log registration activity
+    const tempReq = {
+      user: {
+        userid: userRow.id,
+        email: userRow.email,
+        displayName: displayName,
+      },
+    };
+    logActivity(
+      tempReq,
+      "CREATE",
+      "USER",
+      userRow.id,
+      `User registered: ${displayName} (${email})`
+    );
+
+    res.json({
+      success: true,
+      message: "Registration successful!",
+      user: {
+        id: userRow.id,
+        email: userRow.email,
+        displayName: displayName,
+        type: userRow.type,
+      },
+    });
+  } catch (error) {
+    if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+    console.error("Registration error:", error);
+    res.status(500).json({ error: "Registration failed" });
+  }
 });
 
+// UPDATED LOGIN - now uses email instead of username
 app.post("/login", (req, res) => {
-  let { username, password } = req.body;
-  console.log("Received", username, password);
+  let { email, password } = req.body;
+  console.log("Login attempt for:", email);
 
-  const user = db
-    .prepare("SELECT * FROM users WHERE username = ?")
-    .get(username);
+  const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
 
   if (!user) {
     return res.status(401).json({ error: "User not found" });
@@ -303,12 +367,15 @@ app.post("/login", (req, res) => {
     return res.status(401).json({ error: "Invalid password" });
   }
 
+  const displayName = getDisplayName(user);
+
   const token = jwt.sign(
     {
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
-      skyColor: "red",
       userid: user.id,
-      username: user.username,
+      email: user.email,
+      displayName: displayName,
+      type: user.type,
     },
     process.env.JWTSECRET
   );
@@ -321,10 +388,25 @@ app.post("/login", (req, res) => {
   });
 
   // Log login activity
-  const tempReq = { user: { userid: user.id, username: user.username } };
+  const tempReq = {
+    user: {
+      userid: user.id,
+      email: user.email,
+      displayName: displayName,
+    },
+  };
   logActivity(tempReq, "LOGIN", "USER", user.id, `User logged in`);
 
-  res.json({ success: true, message: "Logged in successfully" });
+  res.json({
+    success: true,
+    message: "Logged in successfully",
+    user: {
+      id: user.id,
+      email: user.email,
+      displayName: displayName,
+      type: user.type,
+    },
+  });
 });
 
 // Project routes
@@ -944,14 +1026,18 @@ app.delete("/notes/:id", requireAuth, (req, res) => {
   }
 });
 
-// Get users for sharing dropdown
+// Get users for sharing dropdown - UPDATED
 app.get("/users", requireAuth, (req, res) => {
   try {
     const users = db
       .prepare(
-        "SELECT id, username, email FROM users WHERE id != ? ORDER BY username"
+        "SELECT id, email, first_name, last_name, type FROM users WHERE id != ? ORDER BY first_name, last_name"
       )
-      .all(req.user.userid);
+      .all(req.user.userid)
+      .map((user) => ({
+        ...user,
+        displayName: getDisplayName(user),
+      }));
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -1137,6 +1223,73 @@ app.get("/activity-log/filters", requireAuth, (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+// User profile routes
+app.get("/user/profile", requireAuth, (req, res) => {
+  try {
+    const user = db
+      .prepare(
+        "SELECT id, email, first_name, last_name, type, phone_number, created_at FROM users WHERE id = ?"
+      )
+      .get(req.user.userid);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({
+      ...user,
+      displayName: getDisplayName(user),
+    });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.put("/user/profile", requireAuth, (req, res) => {
+  const { first_name, last_name, phone_number } = req.body;
+
+  if (!first_name || !last_name) {
+    return res
+      .status(400)
+      .json({ error: "First name and last name are required" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET first_name = ?, last_name = ?, phone_number = ?
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(
+      first_name,
+      last_name,
+      phone_number,
+      req.user.userid
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Log profile update
+    logActivity(
+      req,
+      "UPDATE",
+      "USER",
+      req.user.userid,
+      `Updated profile information`
+    );
+
+    res.json({ success: true, message: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 // Utility routes
 app.get("/check-login", (req, res) => {
   if (req.user) {
