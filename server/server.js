@@ -62,16 +62,24 @@ const createTables = db.transaction(() => {
   // ... rest of your table creations remain the same
   db.prepare(
     `
-    CREATE TABLE IF NOT EXISTS projects (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT,
-      client TEXT,
-      location TEXT,
-      userId INTEGER,
-      FOREIGN KEY (userId) REFERENCES users(id)
-    )
-    `
+  CREATE TABLE IF NOT EXISTS projects (
+    projectID INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_name VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    -- SQLite doesn't support ENUM; use TEXT with a CHECK constraint instead
+    status TEXT DEFAULT 'ongoing' CHECK(status IN ('ongoing','complete')),
+    -- SQLite has no native BOOLEAN type; use INTEGER 0/1
+    draft INTEGER DEFAULT 0,
+    address VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    client VARCHAR(100) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    userId INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id)
+  )
+  `
   ).run();
 
   db.prepare(
@@ -80,7 +88,7 @@ const createTables = db.transaction(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       image_url TEXT NOT NULL,
       projectID INTEGER,
-      FOREIGN KEY (projectId) REFERENCES projects(id)
+      FOREIGN KEY (projectID) REFERENCES projects(projectID)
     )
     `
   ).run();
@@ -163,6 +171,9 @@ const createTables = db.transaction(() => {
   ).run();
   db.prepare(
     "CREATE INDEX IF NOT EXISTS idx_activity_log_resource ON activity_log(resource_type, resource_id)"
+  ).run();
+  db.prepare(
+    "CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)"
   ).run();
 });
 createTables();
@@ -410,19 +421,57 @@ app.post("/login", (req, res) => {
 });
 
 // Project routes
+// Update the createProject route
 app.post("/createProject", requireAuth, upload.array("images"), (req, res) => {
-  const { title, description, client, location } = req.body;
-  console.log("Creating project with title:", title);
+  const {
+    project_name,
+    start_date,
+    end_date,
+    status,
+    draft,
+    address,
+    description,
+    client,
+    country,
+  } = req.body;
+
+  console.log("Creating project with name:", project_name);
+
+  // Validation
+  if (!project_name || project_name.length < 4) {
+    return res
+      .status(400)
+      .json({ error: "Project name must be at least 4 characters long" });
+  }
+
+  if (!start_date) {
+    return res.status(400).json({ error: "Start date is required" });
+  }
+
+  if (status === "complete" && !end_date) {
+    return res
+      .status(400)
+      .json({ error: "End date is required for completed projects" });
+  }
+
+  if (!address || !description || !client || !country) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
 
   const projectStatement = db.prepare(
-    "INSERT INTO projects (title, description, client, location, userId) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO projects (project_name, start_date, end_date, status, draft, address, description, client, country, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
   const result = projectStatement.run(
-    title,
+    project_name,
+    start_date,
+    end_date || null,
+    status,
+    draft === "true" ? 1 : 0,
+    address,
     description,
     client,
-    location,
+    country,
     req.user.userid
   );
 
@@ -444,21 +493,39 @@ app.post("/createProject", requireAuth, upload.array("images"), (req, res) => {
     "CREATE",
     "PROJECT",
     projectId,
-    `Created project: ${title}`,
+    `Created project: ${project_name}`,
     null,
-    { title, description, client, location }
+    { project_name, status, client, country }
   );
 
   res.json({
     success: true,
     message: "Project created successfully",
-    project: { title, description, client, location, id: projectId },
+    project: {
+      projectID: projectId,
+      project_name,
+      start_date,
+      end_date,
+      status,
+      draft,
+      address,
+      description,
+      client,
+      country,
+    },
   });
 });
 
+// Update other project routes to use the new schema
 app.get("/projects", (req, res) => {
   try {
-    const rows = db.prepare("SELECT * FROM projects").all();
+    // Only return draft projects to authenticated users
+    let rows;
+    if (!req.user) {
+      rows = db.prepare("SELECT * FROM projects WHERE draft = 0").all();
+    } else {
+      rows = db.prepare("SELECT * FROM projects").all();
+    }
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -469,10 +536,16 @@ app.get("/projects", (req, res) => {
 app.get("/projects/:id", (req, res) => {
   const { id } = req.params;
   try {
-    const row = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+    const row = db
+      .prepare("SELECT * FROM projects WHERE projectID = ?")
+      .get(id);
     if (!row) {
       res.status(404).json({ error: "Project not found" });
     } else {
+      // If the project is a draft, only allow access for authenticated users
+      if (row.draft == 1 && !req.user) {
+        return res.status(404).json({ error: "Project not found" });
+      }
       res.json(row);
     }
   } catch (err) {
@@ -480,11 +553,12 @@ app.get("/projects/:id", (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
-
 app.get("/manage/:id", (req, res) => {
   const { id } = req.params;
   try {
-    const row = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+    const row = db
+      .prepare("SELECT * FROM projects WHERE projectID = ?")
+      .get(id);
     if (!row) {
       res.status(404).json({ error: "Project not found" });
     } else {
@@ -498,25 +572,68 @@ app.get("/manage/:id", (req, res) => {
 
 app.put("/projects/:id", requireAuth, upload.array("images"), (req, res) => {
   const projectId = req.params.id;
-  const { title, description, client, location, imagesToDelete } = req.body;
+  const {
+    project_name,
+    description,
+    client,
+    country,
+    address,
+    status,
+    draft,
+    start_date,
+    end_date,
+    imagesToDelete,
+  } = req.body;
 
-  if (!title || !description || !client || !location) {
+  // Basic validation similar to createProject
+  if (!project_name || project_name.length < 4) {
+    return res
+      .status(400)
+      .json({ error: "Project name must be at least 4 characters long" });
+  }
+
+  if (!start_date) {
+    return res.status(400).json({ error: "Start date is required" });
+  }
+
+  if (status === "complete" && !end_date) {
+    return res
+      .status(400)
+      .json({ error: "End date is required for completed projects" });
+  }
+
+  if (!address || !description || !client || !country) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
     // Get old values for logging
     const oldProject = db
-      .prepare("SELECT * FROM projects WHERE id = ?")
+      .prepare("SELECT * FROM projects WHERE projectID = ?")
       .get(projectId);
+
+    if (!oldProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
 
     const stmt = db.prepare(`
       UPDATE projects 
-      SET title = ?, description = ?, client = ?, location = ?
-      WHERE id = ?
+      SET project_name = ?, description = ?, client = ?, country = ?, address = ?, status = ?, draft = ?, start_date = ?, end_date = ?
+      WHERE projectID = ?
     `);
 
-    const result = stmt.run(title, description, client, location, projectId);
+    const result = stmt.run(
+      project_name,
+      description,
+      client,
+      country,
+      address,
+      status,
+      draft === "true" || draft === 1 || draft === "1" ? 1 : 0,
+      start_date,
+      end_date || null,
+      projectId
+    );
 
     if (result.changes === 0) {
       return res.status(404).json({ error: "Project not found" });
@@ -545,19 +662,34 @@ app.put("/projects/:id", requireAuth, upload.array("images"), (req, res) => {
     }
 
     // Log project update
-    const newValues = { title, description, client, location };
+    const newValues = {
+      project_name,
+      description,
+      client,
+      country,
+      address,
+      status,
+      draft,
+      start_date,
+      end_date,
+    };
     const oldValues = {
-      title: oldProject.title,
+      project_name: oldProject.project_name,
       description: oldProject.description,
       client: oldProject.client,
-      location: oldProject.location,
+      country: oldProject.country,
+      address: oldProject.address,
+      status: oldProject.status,
+      draft: oldProject.draft,
+      start_date: oldProject.start_date,
+      end_date: oldProject.end_date,
     };
     logActivity(
       req,
       "UPDATE",
       "PROJECT",
       projectId,
-      `Updated project: ${title}`,
+      `Updated project: ${project_name}`,
       oldValues,
       newValues
     );
@@ -754,10 +886,10 @@ app.get("/notes", requireAuth, (req, res) => {
         `
         SELECT 
           n.*,
-          u.username as author_username,
+          (u.first_name || ' ' || u.last_name) as author_username,
           ns.shared_with_user_id as shared_with_me,
           ns.can_edit as can_edit_shared,
-          GROUP_CONCAT(DISTINCT shared_users.username) as shared_with_users
+          GROUP_CONCAT(DISTINCT (shared_users.first_name || ' ' || shared_users.last_name)) as shared_with_users
         FROM notes n
         JOIN users u ON n.user_id = u.id
         LEFT JOIN note_shares ns ON n.id = ns.note_id AND ns.shared_with_user_id = ?
@@ -809,12 +941,14 @@ app.post("/notes", requireAuth, (req, res) => {
 
       // Get usernames for logging
       const userStmt = db.prepare(
-        "SELECT id, username FROM users WHERE id IN (" +
+        "SELECT id, email, first_name, last_name FROM users WHERE id IN (" +
           shared_with.map(() => "?").join(",") +
           ")"
       );
       const sharedUsers = userStmt.all(...shared_with);
-      const sharedUsernames = sharedUsers.map((u) => u.username).join(", ");
+      const sharedUsernames = sharedUsers
+        .map((u) => getDisplayName(u))
+        .join(", ");
 
       shared_with.forEach((userId) => {
         if (userId !== user_id) {
@@ -929,12 +1063,14 @@ app.put("/notes/:id", requireAuth, (req, res) => {
 
         // Get usernames for logging
         const userStmt = db.prepare(
-          "SELECT id, username FROM users WHERE id IN (" +
+          "SELECT id, email, first_name, last_name FROM users WHERE id IN (" +
             shared_with.map(() => "?").join(",") +
             ")"
         );
         const sharedUsers = userStmt.all(...shared_with);
-        const sharedUsernames = sharedUsers.map((u) => u.username).join(", ");
+        const sharedUsernames = sharedUsers
+          .map((u) => getDisplayName(u))
+          .join(", ");
 
         shared_with.forEach((shareUserId) => {
           if (shareUserId !== userId) {
@@ -1286,6 +1422,158 @@ app.put("/user/profile", requireAuth, (req, res) => {
     res.json({ success: true, message: "Profile updated successfully" });
   } catch (error) {
     console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// User management routes (Admin and Owner only)
+app.get("/admin/users", requireAuth, (req, res) => {
+  try {
+    // Check if user is admin or owner
+    if (req.user.type !== "admin" && req.user.type !== "owner") {
+      return res.status(403).json({ error: "Admin or owner access required" });
+    }
+
+    const users = db
+      .prepare(
+        "SELECT id, email, first_name, last_name, type, phone_number, created_at FROM users ORDER BY created_at DESC"
+      )
+      .all()
+      .map((user) => ({
+        ...user,
+        displayName: getDisplayName(user),
+      }));
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.put("/admin/users/:id", requireAuth, (req, res) => {
+  const { first_name, last_name, email, type, phone_number } = req.body;
+  const userId = req.params.id;
+
+  // Check if user is admin or owner
+  if (req.user.type !== "admin" && req.user.type !== "owner") {
+    return res.status(403).json({ error: "Admin or owner access required" });
+  }
+
+  if (!first_name || !last_name || !email || !type) {
+    return res
+      .status(400)
+      .json({ error: "First name, last name, email, and type are required" });
+  }
+
+  // Validate user type
+  const validTypes = ["admin", "owner", "employee"];
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({ error: "Invalid user type" });
+  }
+
+  try {
+    // Check if email already exists for other users
+    const existingUser = db
+      .prepare("SELECT id FROM users WHERE email = ? AND id != ?")
+      .get(email, userId);
+
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET first_name = ?, last_name = ?, email = ?, type = ?, phone_number = ?
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(
+      first_name,
+      last_name,
+      email,
+      type,
+      phone_number,
+      userId
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Log user update
+    logActivity(
+      req,
+      "UPDATE",
+      "USER",
+      userId,
+      `Updated user: ${first_name} ${last_name} (${email})`
+    );
+
+    res.json({ success: true, message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.delete("/admin/users/:id", requireAuth, (req, res) => {
+  const userId = req.params.id;
+
+  // Check if user is admin or owner
+  if (req.user.type !== "admin" && req.user.type !== "owner") {
+    return res.status(403).json({ error: "Admin or owner access required" });
+  }
+
+  // Prevent users from deleting themselves
+  if (parseInt(userId) === req.user.userid) {
+    return res.status(400).json({ error: "Cannot delete your own account" });
+  }
+
+  try {
+    // Get user info for logging before deletion
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Delete user's notes shares first
+    db.prepare(
+      "DELETE FROM note_shares WHERE shared_by_user_id = ? OR shared_with_user_id = ?"
+    ).run(userId, userId);
+
+    // Delete user's notes
+    db.prepare("DELETE FROM notes WHERE user_id = ?").run(userId);
+
+    // Delete user's projects (and associated images and milestones)
+    const userProjects = db
+      .prepare("SELECT id FROM projects WHERE userId = ?")
+      .all(userId);
+    userProjects.forEach((project) => {
+      db.prepare("DELETE FROM images WHERE projectID = ?").run(project.id);
+      db.prepare("DELETE FROM milestones WHERE project_id = ?").run(project.id);
+    });
+    db.prepare("DELETE FROM projects WHERE userId = ?").run(userId);
+
+    // Delete user's activity logs
+    db.prepare("DELETE FROM activity_log WHERE user_id = ?").run(userId);
+
+    // Finally delete the user
+    db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+
+    // Log user deletion
+    logActivity(
+      req,
+      "DELETE",
+      "USER",
+      userId,
+      `Deleted user: ${user.first_name} ${user.last_name} (${user.email})`,
+      { email: user.email, name: `${user.first_name} ${user.last_name}` }
+    );
+
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
     res.status(500).json({ error: "Database error" });
   }
 });

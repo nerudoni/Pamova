@@ -83,11 +83,47 @@
   border-radius: 25px;
   text-decoration: none;
   transition: all 0.3s ease;
+  display: inline-block;
 }
 
 .loginBtn:hover {
   background-color: #f3c940; /* Gold color */
   transform: translateY(-2px);
+  color: white !important;
+}
+
+/* Dashboard button styling */
+.dashboardBtn {
+  background-color: #10c7c7; /* Teal color */
+  color: white !important;
+  padding: 8px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.dashboardBtn:hover {
+  background-color: #f3c940; /* Gold color */
+  transform: translateY(-2px);
+  color: white !important;
+}
+
+/* Logout button specific styling */
+.logoutBtn {
+  background-color: #e53e3e; /* Red color for logout */
+  color: white !important;
+  padding: 8px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.logoutBtn:hover {
+  background-color: #c53030; /* Darker red on hover */
+  transform: translateY(-2px);
+  color: white !important;
 }
 
 /* Hamburger menu - hidden by default */

@@ -1,0 +1,233 @@
+.dashboard {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboardLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 1.2rem;
+}
+
+.dashboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.dashboardHeader h1 {
+  color: #333;
+  margin: 0;
+}
+
+.adminLink {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.adminLink:hover {
+  background-color: #0056b3;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.dashboardSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionHeader h2 {
+  color: #333;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.viewAllLink {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.viewAllLink:hover {
+  text-decoration: underline;
+}
+
+.noData {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* Projects List */
+.projectsList,
+.milestonesList,
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.projectCard,
+.milestoneCard,
+.noteCard {
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #f8f9fa;
+}
+
+.projectCard h3,
+.milestoneCard h3,
+.noteCard h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.projectCard p,
+.milestoneCard p,
+.noteCard p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.projectLink {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.projectLink:hover {
+  text-decoration: underline;
+}
+
+/* Deadline Styles */
+.deadlineUrgent {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.deadlineNormal {
+  color: #28a745;
+  font-weight: 500;
+}
+
+/* Note Styles */
+.notePreview {
+  color: #666;
+  line-height: 1.4;
+}
+
+.noteMeta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.priorityHigh {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.priorityMedium {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.priorityLow {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.statusDone {
+  color: #28a745;
+}
+
+.statusPending {
+  color: #6c757d;
+}
+
+/* Quick Actions */
+.quickActions .actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.actionCard {
+  display: block;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.actionCard:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+  transform: translateY(-2px);
+}
+
+.actionCard h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.actionCard p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .dashboardHeader {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickActions .actionsGrid {
+    grid-template-columns: 1fr;
+  }
+}

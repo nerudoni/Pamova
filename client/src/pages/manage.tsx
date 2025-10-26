@@ -3,8 +3,12 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 interface Project {
-  id: number;
-  title: string;
+  projectID: number; // Changed from id
+  project_name: string; // Changed from title
+  status: string;
+  draft: boolean;
+  client: string;
+  country: string;
 }
 
 function Manage() {
@@ -21,13 +25,15 @@ function Manage() {
       });
   }, []);
 
-  const handleDeleteProject = async (projectId: number) => {
+  const handleDeleteProject = async (projectID: number) => {
     try {
       console.log("accessed");
-      axios.delete(`http://localhost:3000/deleteProject/${projectId}`, {
+      axios.delete(`http://localhost:3000/deleteProject/${projectID}`, {
         withCredentials: true,
       });
-      setProjects(projects.filter((project) => project.id !== projectId));
+      setProjects(
+        projects.filter((project) => project.projectID !== projectID)
+      );
     } catch (err) {
       console.error("Error deleting project:", err);
     }
@@ -41,11 +47,17 @@ function Manage() {
       {projects.length > 0 ? (
         <ul>
           {projects.map((project) => (
-            <li key={project.id}>
-              <Link to={`/manage/${project.id}`}>
-                <h2>{project.title}</h2>
+            <li key={project.projectID}>
+              <Link to={`/manage/${project.projectID}`}>
+                <h2>{project.project_name}</h2>
               </Link>
-              <button onClick={() => handleDeleteProject(project.id)}>X</button>
+              <p>Status: {project.status}</p>
+              <p>Client: {project.client}</p>
+              <p>Country: {project.country}</p>
+              <p>Draft: {project.draft ? "Yes" : "No"}</p>
+              <button onClick={() => handleDeleteProject(project.projectID)}>
+                X
+              </button>
             </li>
           ))}{" "}
         </ul>

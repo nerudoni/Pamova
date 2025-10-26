@@ -5,19 +5,23 @@ import { Link } from "react-router-dom";
 import styles from "./projects.module.css";
 
 interface Project {
-  id: number;
-  title: string;
+  projectID: number; // Changed from id
+  project_name: string; // Changed from title
   client: string;
-  location: string;
+  country: string; // Changed from location
+  status: string;
+  draft: boolean;
+  start_date: string;
+  end_date?: string;
 }
 
 function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"title" | "client" | "location">(
-    "title"
-  );
+  const [sortBy, setSortBy] = useState<
+    "project_name" | "client" | "country" | "status"
+  >("project_name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
@@ -40,11 +44,14 @@ function Projects() {
     if (searchTerm.trim()) {
       results = projects.filter(
         (project) =>
-          project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          project.project_name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           (project.client &&
             project.client.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (project.location &&
-            project.location.toLowerCase().includes(searchTerm.toLowerCase()))
+          (project.country &&
+            project.country.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          project.status.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -52,12 +59,14 @@ function Projects() {
     results = [...results].sort((a, b) => {
       let comparison = 0;
 
-      if (sortBy === "title") {
-        comparison = a.title.localeCompare(b.title);
+      if (sortBy === "project_name") {
+        comparison = a.project_name.localeCompare(b.project_name);
       } else if (sortBy === "client") {
         comparison = (a.client || "").localeCompare(b.client || "");
-      } else if (sortBy === "location") {
-        comparison = (a.location || "").localeCompare(b.location || "");
+      } else if (sortBy === "country") {
+        comparison = (a.country || "").localeCompare(b.country || "");
+      } else if (sortBy === "status") {
+        comparison = a.status.localeCompare(b.status);
       }
 
       // Reverse if descending order
@@ -71,6 +80,12 @@ function Projects() {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
+  // Format year from date string
+  const formatYear = (dateString: string) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).getFullYear();
+  };
+
   return (
     <div className={styles.projectsContainer}>
       <h1 className={styles.pageTitle}>Projects</h1>
@@ -80,7 +95,7 @@ function Projects() {
         <div className={styles.searchContainer}>
           <input
             type="text"
-            placeholder="Search projects by title, client, or location..."
+            placeholder="Search projects by name, client, country, or status..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
@@ -93,9 +108,10 @@ function Projects() {
             onChange={(e) => setSortBy(e.target.value as any)}
             className={styles.sortSelect}
           >
-            <option value="title">Title</option>
+            <option value="project_name">Name</option>
             <option value="client">Client</option>
-            <option value="location">Location</option>
+            <option value="country">Country</option>
+            <option value="status">Status</option>
           </select>
 
           <button
@@ -118,26 +134,41 @@ function Projects() {
       {filteredProjects.length > 0 ? (
         <div className={styles.projectsGrid}>
           {filteredProjects.map((project) => (
-            <div key={project.id} className={styles.projectCard}>
+            <div key={project.projectID} className={styles.projectCard}>
               <Link
-                to={`/projects/${project.id}`}
+                to={`/projects/${project.projectID}`}
                 className={styles.projectLink}
               >
                 <div className={styles.projectImage}>
                   {/* Placeholder for project image */}
+                  <div
+                    className={styles.projectStatus}
+                    data-status={project.status}
+                  >
+                    {project.status}
+                  </div>
+                  {project.draft && (
+                    <div className={styles.draftBadge}>Draft</div>
+                  )}
                 </div>
                 <div className={styles.projectInfo}>
-                  <h2 className={styles.projectTitle}>{project.title}</h2>
+                  <h2 className={styles.projectTitle}>
+                    {project.project_name}
+                  </h2>
                   {project.client && (
                     <p className={styles.projectClient}>
                       Client: {project.client}
                     </p>
                   )}
-                  {project.location && (
+                  {project.country && (
                     <p className={styles.projectLocation}>
-                      Location: {project.location}
+                      Country: {project.country}
                     </p>
                   )}
+                  <p className={styles.projectYears}>
+                    {formatYear(project.start_date)}
+                    {project.end_date && ` - ${formatYear(project.end_date)}`}
+                  </p>
                 </div>
               </Link>
             </div>
