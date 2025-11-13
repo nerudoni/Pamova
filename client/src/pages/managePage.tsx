@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import styles from "./managePage.module.css";
 
 interface Project {
   projectID: number;
@@ -23,6 +24,7 @@ interface Image {
 
 const ManagePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [images, setImages] = useState<Image[]>([]);
   const [project_name, setProjectName] = useState("");
@@ -36,65 +38,73 @@ const ManagePage: React.FC = () => {
   const [end_date, setEndDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleEdit = (e: React.FormEvent) => {
+  const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    const formData = new FormData();
-    formData.append("project_name", project_name);
-    formData.append("description", description);
-    formData.append("client", client);
-    formData.append("country", country);
-    formData.append("address", address);
-    formData.append("status", status);
-    formData.append("draft", draft.toString());
-    formData.append("start_date", start_date);
-    formData.append("end_date", status === "complete" ? end_date : "");
+    try {
+      const formData = new FormData();
+      formData.append("project_name", project_name);
+      formData.append("description", description);
+      formData.append("client", client);
+      formData.append("country", country);
+      formData.append("address", address);
+      formData.append("status", status);
+      formData.append("draft", draft.toString());
+      formData.append("start_date", start_date);
+      formData.append("end_date", status === "complete" ? end_date : "");
 
-    // Append images to delete
-    imagesToDelete.forEach((id) => {
-      formData.append("imagesToDelete", id.toString());
-    });
-
-    // Append new files
-    files.forEach((file) => {
-      formData.append("images", file);
-    });
-
-    axios
-      .put(`http://localhost:3000/projects/${id}`, formData, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((response) => {
-        console.log("Project updated:", response.data);
-        alert("Project updated successfully!");
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Error updating project:", error);
-        alert("Error updating project");
+      // Append images to delete
+      imagesToDelete.forEach((id) => {
+        formData.append("imagesToDelete", id.toString());
       });
+
+      // Append new files
+      files.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const response = await axios.put(
+        `http://localhost:3000/projects/${id}`,
+        formData,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      console.log("Project updated:", response.data);
+      alert("Project updated successfully!");
+      navigate(`/timeline/${id}`);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      setError("Error updating project. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:3000/manage/${id}`)
-      .then((res) => {
-        setProject(res.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching project:", err);
-      });
+    const fetchData = async () => {
+      try {
+        const [projectRes, imagesRes] = await Promise.all([
+          axios.get(`http://localhost:3000/manage/${id}`),
+          axios.get(`http://localhost:3000/projects/${id}/images`),
+        ]);
 
-    axios
-      .get(`http://localhost:3000/projects/${id}/images`)
-      .then((res) => {
-        setImages(res.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching images:", err);
-      });
+        setProject(projectRes.data);
+        setImages(imagesRes.data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load project data.");
+      }
+    };
+
+    fetchData();
   }, [id]);
 
   useEffect(() => {
@@ -131,205 +141,253 @@ const ManagePage: React.FC = () => {
   };
 
   const formatYear = (dateString: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).getFullYear();
+    if (!dateString) return "";
+    return new Date(dateString).getFullYear().toString();
   };
 
-  if (!project) return <p>Loading...</p>;
+  if (!project && !error)
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading project details...</p>
+      </div>
+    );
 
   return (
-    <>
-      {/* Edit Form Section */}
-      <div>
-        <h1>Edit Project</h1>
-        <main>
-          <form onSubmit={handleEdit}>
-            <fieldset>
-              <legend>Edit project</legend>
+    <div className={styles.managePage}>
+      <div className={styles.manageContainer}>
+        <header className={styles.manageHeader}>
+          <h1 className={styles.manageTitle}>Edit Project</h1>
+          <p className={styles.projectId}>Project ID: {id}</p>
+        </header>
 
-              <label htmlFor="project_name">
-                <small>Project Name</small>
-                <input
-                  id="project_name"
-                  name="project_name"
-                  type="text"
-                  value={project_name}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  autoComplete="off"
-                  required
-                  minLength={4}
-                />
-              </label>
+        {error && <div className={styles.errorMessage}>{error}</div>}
 
-              <label htmlFor="description">
-                <small>Description</small>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  name="description"
-                  autoComplete="off"
-                  required
-                />
-              </label>
+        <main className={styles.manageMain}>
+          <form onSubmit={handleEdit} className={styles.projectForm}>
+            <fieldset className={styles.formFieldset}>
+              <legend className={styles.formLegend}>Project Details</legend>
 
-              <label htmlFor="client">
-                <small>Client</small>
-                <input
-                  id="client"
-                  name="client"
-                  type="text"
-                  value={client}
-                  onChange={(e) => setClient(e.target.value)}
-                  autoComplete="off"
-                  required
-                />
-              </label>
-
-              <label htmlFor="country">
-                <small>Country</small>
-                <input
-                  id="country"
-                  name="country"
-                  type="text"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  autoComplete="off"
-                  required
-                />
-              </label>
-
-              <label htmlFor="address">
-                <small>Address</small>
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  autoComplete="off"
-                  required
-                />
-              </label>
-
-              <label htmlFor="status">
-                <small>Status</small>
-                <select
-                  id="status"
-                  name="status"
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as "ongoing" | "complete")
-                  }
-                >
-                  <option value="ongoing">Ongoing</option>
-                  <option value="complete">Complete</option>
-                </select>
-              </label>
-
-              <label htmlFor="start_date">
-                <small>Start Year</small>
-                <input
-                  id="start_date"
-                  name="start_date"
-                  type="number"
-                  min="1900"
-                  max="2100"
-                  value={start_date ? formatYear(start_date) : ""}
-                  onChange={handleStartDateChange}
-                  required
-                />
-              </label>
-
-              {status === "complete" && (
-                <label htmlFor="end_date">
-                  <small>End Year (required for completed projects)</small>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="project_name" className={styles.formLabel}>
+                    Project Name
+                  </label>
                   <input
-                    id="end_date"
-                    name="end_date"
+                    id="project_name"
+                    name="project_name"
+                    type="text"
+                    value={project_name}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    autoComplete="off"
+                    required
+                    minLength={4}
+                    className={styles.formInput}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="client" className={styles.formLabel}>
+                    Client
+                  </label>
+                  <input
+                    id="client"
+                    name="client"
+                    type="text"
+                    value={client}
+                    onChange={(e) => setClient(e.target.value)}
+                    autoComplete="off"
+                    required
+                    className={styles.formInput}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="country" className={styles.formLabel}>
+                    Country
+                  </label>
+                  <input
+                    id="country"
+                    name="country"
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    autoComplete="off"
+                    required
+                    className={styles.formInput}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="address" className={styles.formLabel}>
+                    Address
+                  </label>
+                  <input
+                    id="address"
+                    name="address"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    autoComplete="off"
+                    required
+                    className={styles.formInput}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="status" className={styles.formLabel}>
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={status}
+                    onChange={(e) =>
+                      setStatus(e.target.value as "ongoing" | "complete")
+                    }
+                    className={styles.formSelect}
+                  >
+                    <option value="ongoing">Ongoing</option>
+                    <option value="complete">Complete</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="start_date" className={styles.formLabel}>
+                    Start Year
+                  </label>
+                  <input
+                    id="start_date"
+                    name="start_date"
                     type="number"
                     min="1900"
                     max="2100"
-                    value={end_date ? formatYear(end_date) : ""}
-                    onChange={handleEndDateChange}
-                    required={status === "complete"}
+                    value={start_date ? formatYear(start_date) : ""}
+                    onChange={handleStartDateChange}
+                    required
+                    className={styles.formInput}
                   />
-                </label>
-              )}
+                </div>
 
-              <label
-                htmlFor="draft"
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-              >
-                <small>Draft</small>
-                <input
-                  id="draft"
-                  name="draft"
-                  type="checkbox"
-                  checked={draft}
-                  onChange={(e) => setDraft(e.target.checked)}
-                />
-              </label>
+                {status === "complete" && (
+                  <div className={styles.formGroup}>
+                    <label htmlFor="end_date" className={styles.formLabel}>
+                      End Year
+                      <span className={styles.requiredAsterisk}>*</span>
+                    </label>
+                    <input
+                      id="end_date"
+                      name="end_date"
+                      type="number"
+                      min="1900"
+                      max="2100"
+                      value={end_date ? formatYear(end_date) : ""}
+                      onChange={handleEndDateChange}
+                      required={status === "complete"}
+                      className={styles.formInput}
+                    />
+                  </div>
+                )}
+
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                  <label htmlFor="description" className={styles.formLabel}>
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    name="description"
+                    autoComplete="off"
+                    required
+                    className={styles.formTextarea}
+                    rows={4}
+                  />
+                </div>
+
+                <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+                  <label htmlFor="draft" className={styles.checkboxLabel}>
+                    <input
+                      id="draft"
+                      name="draft"
+                      type="checkbox"
+                      checked={draft}
+                      onChange={(e) => setDraft(e.target.checked)}
+                      className={styles.formCheckbox}
+                    />
+                    <span className={styles.checkmark}></span>
+                    Save as Draft
+                  </label>
+                </div>
+              </div>
 
               {/* Current Images Section */}
-              <div id="images-div">
-                <h3>Current Images</h3>
+              <div className={styles.imagesSection}>
+                <h3 className={styles.sectionTitle}>Current Images</h3>
                 {images.length > 0 ? (
-                  images.map((img) => {
-                    const isMarkedForDeletion = imagesToDelete.includes(img.id);
+                  <div className={styles.imagesGrid}>
+                    {images.map((img) => {
+                      const isMarkedForDeletion = imagesToDelete.includes(
+                        img.id
+                      );
 
-                    return (
-                      <div
-                        key={img.id}
-                        style={{
-                          display: "inline-block",
-                          margin: "10px",
-                          opacity: isMarkedForDeletion ? 0.5 : 1,
-                        }}
-                      >
-                        <img
-                          src={`http://localhost:3000${img.image_url}`}
-                          alt={`Project ${project.project_name}`}
-                          style={{
-                            width: "150px",
-                            height: "150px",
-                            objectFit: "cover",
-                            border: isMarkedForDeletion
-                              ? "2px solid red"
-                              : "none",
-                          }}
-                        />
-                        <br />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isMarkedForDeletion) {
-                              setImagesToDelete((prev) =>
-                                prev.filter((imageId) => imageId !== img.id)
-                              );
-                            } else {
-                              setImagesToDelete((prev) => [...prev, img.id]);
-                            }
-                          }}
-                          style={{
-                            color: isMarkedForDeletion ? "green" : "red",
-                          }}
+                      return (
+                        <div
+                          key={img.id}
+                          className={`${styles.imageItem} ${
+                            isMarkedForDeletion ? styles.markedForDeletion : ""
+                          }`}
                         >
-                          {isMarkedForDeletion ? "Undo Remove" : "Remove"}
-                        </button>
-                      </div>
-                    );
-                  })
+                          <div className={styles.imageContainer}>
+                            <img
+                              src={`http://localhost:3000${img.image_url}`}
+                              alt={`Project ${project.project_name}`}
+                              className={styles.projectImage}
+                            />
+                            <div className={styles.imageOverlay}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isMarkedForDeletion) {
+                                    setImagesToDelete((prev) =>
+                                      prev.filter(
+                                        (imageId) => imageId !== img.id
+                                      )
+                                    );
+                                  } else {
+                                    setImagesToDelete((prev) => [
+                                      ...prev,
+                                      img.id,
+                                    ]);
+                                  }
+                                }}
+                                className={`${styles.imageActionBtn} ${
+                                  isMarkedForDeletion
+                                    ? styles.undo
+                                    : styles.remove
+                                }`}
+                              >
+                                {isMarkedForDeletion ? "Undo" : "Remove"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <p>No images for this project.</p>
+                  <p className={styles.noImages}>No images for this project.</p>
                 )}
               </div>
 
               {/* Add new images section */}
-              <label htmlFor="images">
-                <small>Add New Images</small>
+              <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                <label htmlFor="images" className={styles.formLabel}>
+                  Add New Images
+                </label>
                 <input
                   type="file"
+                  id="images"
                   name="images"
                   multiple
                   onChange={(e) => {
@@ -337,16 +395,36 @@ const ManagePage: React.FC = () => {
                       setFiles(Array.from(e.target.files));
                     }
                   }}
+                  className={styles.fileInput}
                 />
-              </label>
+                {files.length > 0 && (
+                  <div className={styles.selectedFiles}>
+                    <small>{files.length} file(s) selected</small>
+                  </div>
+                )}
+              </div>
 
-              <button type="submit">Update Project</button>
+              <div className={styles.formActions}>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Updating..." : "Update Project"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => navigate(`/timeline/${id}`)}
+                >
+                  View Timeline
+                </button>
+              </div>
             </fieldset>
           </form>
         </main>
-        <a href={`/timeline/${id}`}>Go to Timeline Page</a>
       </div>
-    </>
+    </div>
   );
 };
 

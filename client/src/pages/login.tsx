@@ -1,13 +1,13 @@
-// Login.tsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import styles from "./Login.module.css";
 
-function login() {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+const Login: React.FC = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,12 +17,17 @@ function login() {
         if (res.data.loggedIn) {
           navigate("/dashboard");
         }
+      })
+      .catch((error) => {
+        console.error("Auth check failed:", error);
       });
-  }, []);
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(email, password);
+    setIsLoading(true);
+    setError("");
+
     try {
       const response = await axios.post(
         "http://localhost:3000/login",
@@ -32,34 +37,54 @@ function login() {
         },
         { withCredentials: true }
       );
+
       if (response.data.success) {
         navigate("/dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Log in failed: ", error);
+      setError(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
-        <h1 className={styles.loginTitle}>Login to Your Account</h1>
+        <div className={styles.loginHeader}>
+          <div className={styles.loginBadge}>
+            <span>PAMOVA CONSTRUCTION</span>
+          </div>
+          <h1 className={styles.loginTitle}>Secure Access</h1>
+          <p className={styles.loginSubtitle}>
+            Enter your credentials to access the management portal
+          </p>
+        </div>
+
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
         <form onSubmit={handleLogin} className={styles.loginForm}>
           <div className={styles.formGroup}>
             <label htmlFor="email" className={styles.formLabel}>
-              Email
+              Email Address
             </label>
             <input
               id="email"
               name="email"
-              type="text"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="off"
+              autoComplete="email"
               className={styles.formInput}
-              placeholder="Enter your email"
+              placeholder="admin@pamova.com"
+              required
+              disabled={isLoading}
             />
           </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="password" className={styles.formLabel}>
               Password
@@ -70,17 +95,38 @@ function login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               name="password"
-              autoComplete="off"
+              autoComplete="current-password"
               className={styles.formInput}
               placeholder="Enter your password"
+              required
+              disabled={isLoading}
             />
           </div>
-          <button type="submit" className={styles.loginButton}>
-            Log in
+
+          <button
+            type="submit"
+            className={styles.loginButton}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className={styles.loadingSpinner}></div>
+                Authenticating...
+              </>
+            ) : (
+              "Access Portal"
+            )}
           </button>
         </form>
+
+        <div className={styles.loginFooter}>
+          <p className={styles.securityNote}>
+            Secure management portal for authorized personnel only
+          </p>
+        </div>
       </div>
     </div>
   );
-}
-export default login;
+};
+
+export default Login;

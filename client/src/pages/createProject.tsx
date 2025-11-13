@@ -1,9 +1,9 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import styles from "./CreateProject.module.css";
 
-// List of all countries (you might want to import this from a separate file)
-const COUNTRIES = [
+const COUNTRIES: string[] = [
   "Afghanistan",
   "Albania",
   "Algeria",
@@ -42,12 +42,14 @@ const COUNTRIES = [
   "China",
   "Colombia",
   "Comoros",
-  "Congo",
+  "Congo (Congo-Brazzaville)",
   "Costa Rica",
+  "Côte d’Ivoire",
   "Croatia",
   "Cuba",
   "Cyprus",
-  "Czech Republic",
+  "Czechia (Czech Republic)",
+  "Democratic Republic of the Congo",
   "Denmark",
   "Djibouti",
   "Dominica",
@@ -58,7 +60,7 @@ const COUNTRIES = [
   "Equatorial Guinea",
   "Eritrea",
   "Estonia",
-  "Eswatini",
+  "Eswatini (fmr. Swaziland)",
   "Ethiopia",
   "Fiji",
   "Finland",
@@ -91,9 +93,6 @@ const COUNTRIES = [
   "Kazakhstan",
   "Kenya",
   "Kiribati",
-  "Korea, North",
-  "Korea, South",
-  "Kosovo",
   "Kuwait",
   "Kyrgyzstan",
   "Laos",
@@ -122,7 +121,7 @@ const COUNTRIES = [
   "Montenegro",
   "Morocco",
   "Mozambique",
-  "Myanmar",
+  "Myanmar (formerly Burma)",
   "Namibia",
   "Nauru",
   "Nepal",
@@ -131,12 +130,12 @@ const COUNTRIES = [
   "Nicaragua",
   "Niger",
   "Nigeria",
+  "North Korea",
   "North Macedonia",
   "Norway",
   "Oman",
   "Pakistan",
   "Palau",
-  "Palestine",
   "Panama",
   "Papua New Guinea",
   "Paraguay",
@@ -165,6 +164,7 @@ const COUNTRIES = [
   "Solomon Islands",
   "Somalia",
   "South Africa",
+  "South Korea",
   "South Sudan",
   "Spain",
   "Sri Lanka",
@@ -189,7 +189,7 @@ const COUNTRIES = [
   "Ukraine",
   "United Arab Emirates",
   "United Kingdom",
-  "United States",
+  "United States of America",
   "Uruguay",
   "Uzbekistan",
   "Vanuatu",
@@ -267,18 +267,19 @@ function CreateProject() {
       })
       .then((response) => {
         console.log("Project created:", response.data);
-        // Optionally redirect or show success message
+        alert("Project created successfully!");
+        // Optionally redirect or clear form
       })
       .catch((error) => {
         console.error("Error creating project:", error);
+        alert("Error creating project. Please try again.");
       });
   };
 
-  // Handle year-only inputs (convert to full date)
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const year = e.target.value;
     if (year && year.length === 4) {
-      setStartDate(`${year}-01-01`); // Set to January 1st of the year
+      setStartDate(`${year}-01-01`);
     } else {
       setStartDate(year);
     }
@@ -287,162 +288,206 @@ function CreateProject() {
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const year = e.target.value;
     if (year && year.length === 4) {
-      setEndDate(`${year}-12-31`); // Set to December 31st of the year
+      setEndDate(`${year}-12-31`);
     } else {
       setEndDate(year);
     }
   };
 
   return (
-    <>
-      <h1>Create Project</h1>
-      <main>
-        <form onSubmit={handleCreate}>
-          <fieldset>
-            <legend>Create new project</legend>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Create Project</h1>
+      </header>
+      <main className={styles.main}>
+        <form onSubmit={handleCreate} className={styles.form}>
+          <fieldset className={styles.fieldset}>
+            <legend className={styles.legend}>Create new project</legend>
 
-            <label htmlFor="project_name">
-              <small>Project Name (min. 4 characters)</small>
-              <input
-                id="project_name"
-                name="project_name"
-                type="text"
-                value={project_name}
-                onChange={(e) => setProjectName(e.target.value)}
-                autoComplete="off"
-                minLength={4}
-                required
-              />
-            </label>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label htmlFor="project_name" className={styles.label}>
+                  <span className={styles.required}>Project Name</span>
+                  <small className={styles.small}>Minimum 4 characters</small>
+                  <input
+                    id="project_name"
+                    name="project_name"
+                    type="text"
+                    value={project_name}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    autoComplete="off"
+                    minLength={4}
+                    required
+                    className={styles.input}
+                  />
+                </label>
+              </div>
 
-            <label htmlFor="start_date">
-              <small>Start Year (required)</small>
-              <input
-                id="start_date"
-                name="start_date"
-                type="number"
-                min="1900"
-                max="2100"
-                value={start_date ? start_date.split("-")[0] : ""}
-                onChange={handleStartDateChange}
-                required
-              />
-            </label>
+              <div className={styles.formGroup}>
+                <label htmlFor="client" className={styles.label}>
+                  <span className={styles.required}>Client</span>
+                  <input
+                    id="client"
+                    name="client"
+                    type="text"
+                    value={client}
+                    onChange={(e) => setClient(e.target.value)}
+                    autoComplete="off"
+                    required
+                    className={styles.input}
+                  />
+                </label>
+              </div>
 
-            <label htmlFor="end_date">
-              <small>End Year (required for completed projects)</small>
-              <input
-                id="end_date"
-                name="end_date"
-                type="number"
-                min="1900"
-                max="2100"
-                value={end_date ? end_date.split("-")[0] : ""}
-                onChange={handleEndDateChange}
-              />
-            </label>
+              <div className={styles.formGroup}>
+                <label htmlFor="start_date" className={styles.label}>
+                  <span className={styles.required}>Start Year</span>
+                  <input
+                    id="start_date"
+                    name="start_date"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    value={start_date ? start_date.split("-")[0] : ""}
+                    onChange={handleStartDateChange}
+                    required
+                    className={styles.input}
+                  />
+                </label>
+              </div>
 
-            <label htmlFor="status">
-              <small>Status</small>
-              <select
-                id="status"
-                name="status"
-                value={status}
-                onChange={(e) =>
-                  setStatus(e.target.value as "ongoing" | "complete")
-                }
-              >
-                <option value="ongoing">Ongoing</option>
-                <option value="complete">Complete</option>
-              </select>
-            </label>
+              <div className={styles.formGroup}>
+                <label htmlFor="end_date" className={styles.label}>
+                  End Year
+                  <small className={styles.small}>
+                    Required for completed projects
+                  </small>
+                  <input
+                    id="end_date"
+                    name="end_date"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    value={end_date ? end_date.split("-")[0] : ""}
+                    onChange={handleEndDateChange}
+                    className={styles.input}
+                  />
+                </label>
+              </div>
 
-            <label htmlFor="draft">
-              <small>Draft</small>
-              <input
-                id="draft"
-                name="draft"
-                type="checkbox"
-                checked={draft}
-                onChange={(e) => setDraft(e.target.checked)}
-              />
-            </label>
+              <div className={styles.formGroup}>
+                <label htmlFor="status" className={styles.label}>
+                  Status
+                  <select
+                    id="status"
+                    name="status"
+                    value={status}
+                    onChange={(e) =>
+                      setStatus(e.target.value as "ongoing" | "complete")
+                    }
+                    className={styles.select}
+                  >
+                    <option value="ongoing">Ongoing</option>
+                    <option value="complete">Complete</option>
+                  </select>
+                </label>
+              </div>
 
-            <label htmlFor="address">
-              <small>Address (required)</small>
-              <input
-                id="address"
-                name="address"
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                autoComplete="off"
-                required
-              />
-            </label>
+              <div className={styles.formGroup}>
+                <label htmlFor="country" className={styles.label}>
+                  <span className={styles.required}>Country</span>
+                  <select
+                    id="country"
+                    name="country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    required
+                    className={styles.select}
+                  >
+                    <option value="">Select a country</option>
+                    {COUNTRIES.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
 
-            <label htmlFor="description">
-              <small>Description (required)</small>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                name="description"
-                autoComplete="off"
-                required
-              ></textarea>
-            </label>
+              <div className={styles.formGroupFull}>
+                <label htmlFor="address" className={styles.label}>
+                  <span className={styles.required}>Address</span>
+                  <input
+                    id="address"
+                    name="address"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    autoComplete="off"
+                    required
+                    className={styles.input}
+                  />
+                </label>
+              </div>
 
-            <label htmlFor="client">
-              <small>Client (required)</small>
-              <input
-                id="client"
-                name="client"
-                type="text"
-                value={client}
-                onChange={(e) => setClient(e.target.value)}
-                autoComplete="off"
-                required
-              />
-            </label>
+              <div className={styles.formGroupFull}>
+                <label htmlFor="description" className={styles.label}>
+                  <span className={styles.required}>Description</span>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    name="description"
+                    autoComplete="off"
+                    required
+                    className={styles.textarea}
+                  ></textarea>
+                </label>
+              </div>
 
-            <label htmlFor="country">
-              <small>Country (required)</small>
-              <select
-                id="country"
-                name="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                required
-              >
-                <option value="">Select a country</option>
-                {COUNTRIES.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <div className={styles.formGroup}>
+                <div className={styles.checkboxContainer}>
+                  <input
+                    id="draft"
+                    name="draft"
+                    type="checkbox"
+                    checked={draft}
+                    onChange={(e) => setDraft(e.target.checked)}
+                    className={styles.checkbox}
+                  />
+                  <label htmlFor="draft" className={styles.checkboxLabel}>
+                    Save as Draft
+                  </label>
+                </div>
+              </div>
 
-            <br />
-            <label htmlFor="images">
-              <small>Upload images</small>
-              <input
-                type="file"
-                name="images"
-                multiple
-                onChange={(e) => {
-                  if (e.target.files) {
-                    setFiles(Array.from(e.target.files));
-                  }
-                }}
-              />
-            </label>
-            <button type="submit">Create</button>
+              <div className={styles.formGroup}>
+                <label htmlFor="images" className={styles.label}>
+                  Upload Images
+                  <input
+                    type="file"
+                    name="images"
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        setFiles(Array.from(e.target.files));
+                      }
+                    }}
+                    className={styles.fileInput}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.formActions}>
+              <button type="submit" className={styles.submitButton}>
+                Create Project
+              </button>
+            </div>
           </fieldset>
         </form>
       </main>
-    </>
+    </div>
   );
 }
 

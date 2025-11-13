@@ -362,7 +362,7 @@ app.post("/register", (req, res) => {
   }
 });
 
-// UPDATED LOGIN - now uses email instead of username
+//LOGIN - now uses email instead of username
 app.post("/login", (req, res) => {
   let { email, password } = req.body;
   console.log("Login attempt for:", email);
@@ -1241,11 +1241,11 @@ app.get("/activity-log", requireAuth, (req, res) => {
     const totalResult = countStmt.get(...params);
     const total = totalResult.total;
 
-    // Get activity logs
+    // Get activity logs. Use users' first+last name if present, otherwise fall back to the stored al.username
     const stmt = db.prepare(`
       SELECT 
         al.*,
-        u.username as performer_username
+        COALESCE((u.first_name || ' ' || u.last_name), al.username) as performer_username
       FROM activity_log al
       LEFT JOIN users u ON al.user_id = u.id
       WHERE ${whereClause}

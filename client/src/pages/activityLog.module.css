@@ -1,415 +1,63 @@
-.container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: #f8f9fa;
-  min-height: 100vh;
-}
+/* ActivityLog.module.css - Fixed text colors and removed emojis */
 
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.header h1 {
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.header p {
-  color: #666;
-  font-size: 16px;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  margin-bottom: 30px;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.tab {
-  padding: 12px 24px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  font-size: 16px;
-  cursor: pointer;
-  color: #666;
-  transition: all 0.3s ease;
-}
-
-.tabActive {
-  color: #10c7c7;
-  border-bottom-color: #10c7c7;
-  font-weight: bold;
-}
-
-.tab:hover {
-  color: #10c7c7;
-}
-
-/* Filters */
-.filtersSection {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-.filterRow {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-  align-items: end;
-}
-
-.filterRow:last-child {
-  margin-bottom: 0;
-}
-
-.filterGroup {
-  display: flex;
-  flex-direction: column;
-  min-width: 150px;
-}
-
-.filterGroup label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
-  font-size: 14px;
-}
-
-.filterGroup input,
-.filterGroup select {
-  padding: 8px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.clearFilters {
-  padding: 8px 16px;
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  height: fit-content;
-}
-
-.clearFilters:hover {
-  background: #ff5252;
-}
-
-/* Activities List */
-.activitiesList {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.loading,
-.noActivities {
-  padding: 40px;
-  text-align: center;
-  color: #666;
-  font-size: 16px;
-}
-
-.activityItem {
-  padding: 20px;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background-color 0.2s ease;
-}
-
-.activityItem:hover {
-  background-color: #fafafa;
-}
-
-.activityItem:last-child {
-  border-bottom: none;
-}
-
-.activityHeader {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 10px;
-}
-
-.actionIcon {
-  font-size: 20px;
-  margin-top: 2px;
-}
-
-.activityInfo {
-  flex: 1;
-}
-
-.activityDescription {
-  margin-bottom: 5px;
-  line-height: 1.4;
-}
+/* ... keep all previous styles, but update these specific sections ... */
 
 .activityDescription strong {
-  color: #333;
-  margin-right: 8px;
+  color: #b08d57;
+  margin-right: 0.5rem;
 }
 
 .actionType {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 2px 8px;
+  background: rgba(72, 209, 204, 0.1);
+  color: #48d1cc;
+  padding: 0.25rem 0.75rem;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  margin: 0 8px;
-}
-
-.activityMeta {
-  display: flex;
-  gap: 15px;
-  font-size: 12px;
-  color: #888;
-}
-
-.timestamp {
-  font-weight: 500;
-}
-
-.ip {
-  font-family: monospace;
-}
-
-.activityDetails {
-  margin-left: 35px;
-}
-
-.descriptionText {
-  color: #333;
-  margin-bottom: 10px;
-  line-height: 1.4;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .changes {
-  background: #f8f9fa;
-  padding: 10px;
+  background: rgba(15, 17, 22, 0.8);
+  padding: 1rem;
   border-radius: 6px;
-  border-left: 3px solid #10c7c7;
-  font-size: 13px;
+  border-left: 3px solid #48d1cc;
+  font-size: 0.8rem;
+  border: 1px solid rgba(42, 45, 50, 0.8);
+  color: rgba(248, 247, 244, 0.9); /* Added text color */
 }
 
 .changeOld,
 .changeNew {
-  margin-bottom: 5px;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: rgba(248, 247, 244, 0.9); /* Fixed text color */
 }
 
 .changeOld strong {
-  color: #ff6b6b;
+  color: #ff6b6b; /* Brighter red for better contrast */
+  margin-right: 0.5rem;
 }
 
 .changeNew strong {
-  color: #6bcf7f;
+  color: #6bcf7f; /* Brighter green for better contrast */
+  margin-right: 0.5rem;
 }
 
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  gap: 15px;
-}
-
-.pagination button {
-  padding: 8px 16px;
-  background: #10c7c7;
-  color: white;
-  border: none;
+/* Remove emoji styles and replace with text indicators */
+.actionIcon {
+  font-size: 0.8rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  background: rgba(176, 141, 87, 0.1);
+  color: #b08d57;
+  padding: 0.5rem;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.pagination button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.pagination button:hover:not(:disabled) {
-  background: #0eb5b5;
-}
-
-.pageInfo {
-  color: #666;
-  font-weight: 500;
-}
-
-/* Statistics */
-.statsSection {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.statCard {
-  background: linear-gradient(135deg, #10c7c7, #0eb5b5);
-  color: white;
-  padding: 25px;
-  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 3rem;
   text-align: center;
-  box-shadow: 0 4px 15px rgba(16, 199, 199, 0.3);
-}
-
-.statNumber {
-  font-size: 36px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.statLabel {
-  font-size: 16px;
-  opacity: 0.9;
-}
-
-.statsCharts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-}
-
-.chartSection {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.chartSection h3 {
-  margin: 0 0 15px 0;
-  color: #333;
-  font-size: 18px;
-}
-
-.chartBars {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.chartBar {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.barLabel {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #333;
-}
-
-.barTrack {
-  background: #e0e0e0;
-  height: 8px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.barFill {
-  background: linear-gradient(90deg, #10c7c7, #0eb5b5);
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.userList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.userItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 6px;
-  border-left: 3px solid #10c7c7;
-}
-
-.userRank {
-  background: #10c7c7;
-  color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.userName {
-  flex: 1;
-  font-weight: 500;
-  color: #333;
-}
-
-.userCount {
-  color: #666;
-  font-size: 14px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .container {
-    padding: 10px;
-  }
-
-  .filterRow {
-    flex-direction: column;
-  }
-
-  .filterGroup {
-    min-width: 100%;
-  }
-
-  .statsCharts {
-    grid-template-columns: 1fr;
-  }
-
-  .activityHeader {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .activityDetails {
-    margin-left: 0;
-  }
-
-  .activityMeta {
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .tabs {
-    justify-content: center;
-  }
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import styles from "./notes.module.css";
+import styles from "./Notes.module.css";
 
 axios.defaults.withCredentials = true;
 
@@ -255,7 +255,7 @@ const NotesPage: React.FC = () => {
               <button
                 onClick={() => toggleDone(note.id, note.is_done)}
                 className={styles.doneBtn}
-                disabled={!!note.shared_with_me && !note.can_edit_shared}
+                disabled={note.shared_with_me && !note.can_edit_shared}
               >
                 {note.is_done ? "✅ Done" : "⬜ Mark Done"}
               </button>

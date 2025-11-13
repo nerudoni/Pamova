@@ -13,7 +13,7 @@ import ProjectPage from "./pages/projectpage";
 import VerifyOTP from "./pages/verifyOTP";
 import ResetPassword from "./pages/resetPassword";
 import ManagePage from "./pages/managePage";
-import TimelinePage from "./pages/TimelinePage";
+import TimelinePage from "./pages/timelinePage";
 import Notes from "./pages/notes";
 import ActivityLog from "./pages/activityLog";
 

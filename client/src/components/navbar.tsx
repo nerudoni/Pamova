@@ -43,13 +43,9 @@ const Navbar: React.FC = () => {
   };
 
   // Check if we're on a public page
-  const isPublicPage = [
-    "/",
-    "/about",
-    "/projects",
-    "/services",
-    "/contact",
-  ].includes(currentPath);
+  const isPublicPage = ["/", "/about", "/projects", "/contact"].includes(
+    currentPath
+  );
 
   // Check if we're on an employee-only page
   const isEmployeePage = ["/dashboard", "/manage", "/settings"].includes(
@@ -103,17 +99,7 @@ const Navbar: React.FC = () => {
                     About
                   </a>
                 </li>
-                <li className={styles.navItem}>
-                  <a
-                    href="/services"
-                    className={`${styles.navLink} ${
-                      currentPath === "/services" ? styles.active : ""
-                    }`}
-                    onClick={closeMenu}
-                  >
-                    Services
-                  </a>
-                </li>
+
                 <li className={styles.navItem}>
                   <a
                     href="/projects"
@@ -204,11 +190,11 @@ const Navbar: React.FC = () => {
               ) : (
                 // Not logged in: Show Consultation CTA (turquoise accent)
                 <a
-                  href="/consultation"
+                  href="/login"
                   className={styles.consultationBtn}
                   onClick={closeMenu}
                 >
-                  Request Consultation
+                  Login
                 </a>
               )}
             </li>
