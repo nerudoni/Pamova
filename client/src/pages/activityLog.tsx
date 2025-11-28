@@ -148,37 +148,22 @@ const ActivityLog: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const getActionIcon = (actionType: string) => {
+  const getActionAbbreviation = (actionType: string) => {
     switch (actionType) {
       case "CREATE":
-        return "📝";
+        return "CR";
       case "UPDATE":
-        return "✏️";
+        return "UP";
       case "DELETE":
-        return "🗑️";
+        return "DL";
       case "LOGIN":
-        return "🔐";
+        return "IN";
       case "LOGOUT":
-        return "🚪";
+        return "OUT";
       case "SHARE":
-        return "👥";
+        return "SH";
       default:
-        return "📋";
-    }
-  };
-
-  const getResourceIcon = (resourceType: string) => {
-    switch (resourceType) {
-      case "NOTE":
-        return "📝";
-      case "PROJECT":
-        return "📁";
-      case "MILESTONE":
-        return "🎯";
-      case "USER":
-        return "👤";
-      default:
-        return "📄";
+        return actionType.substring(0, 2).toUpperCase();
     }
   };
 
@@ -327,8 +312,7 @@ const ActivityLog: React.FC = () => {
                   <div key={activity.id} className={styles.activityItem}>
                     <div className={styles.activityHeader}>
                       <span className={styles.actionIcon}>
-                        {getActionIcon(activity.action_type)}
-                        {getResourceIcon(activity.resource_type)}
+                        {getActionAbbreviation(activity.action_type)}
                       </span>
                       <div className={styles.activityInfo}>
                         <div className={styles.activityDescription}>
@@ -413,61 +397,52 @@ const ActivityLog: React.FC = () => {
       )}
 
       {activeTab === "stats" && stats && (
-        <div className={styles.statsSection}>
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>{stats.recent_activity}</div>
-              <div className={styles.statLabel}>Activities (30 days)</div>
-            </div>
-
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>
-                {stats.most_active_users.length}
+        <div className={styles.statsContainer}>
+          <div className={styles.statCard}>
+            <h3>Activity Overview</h3>
+            <div className={styles.statList}>
+              <div className={styles.statItem}>
+                <span className={styles.statLabel}>
+                  Total Activities (30 days)
+                </span>
+                <span className={styles.statValue}>
+                  {stats.recent_activity}
+                </span>
               </div>
-              <div className={styles.statLabel}>Active Users</div>
+              <div className={styles.statItem}>
+                <span className={styles.statLabel}>Active Users</span>
+                <span className={styles.statValue}>
+                  {stats.most_active_users.length}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className={styles.statsCharts}>
-            <div className={styles.chartSection}>
-              <h3>Activity by Type</h3>
-              <div className={styles.chartBars}>
-                {stats.activity_by_type.map((item) => (
-                  <div key={item.action_type} className={styles.chartBar}>
-                    <div className={styles.barLabel}>
-                      <span>
-                        {getActionIcon(item.action_type)} {item.action_type}
-                      </span>
-                      <span>{item.count}</span>
-                    </div>
-                    <div className={styles.barTrack}>
-                      <div
-                        className={styles.barFill}
-                        style={{
-                          width: `${
-                            (item.count / stats.recent_activity) * 100
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className={styles.statCard}>
+            <h3>Activity by Type</h3>
+            <div className={styles.statList}>
+              {stats.activity_by_type.map((item) => (
+                <div key={item.action_type} className={styles.statItem}>
+                  <span className={styles.statLabel}>{item.action_type}</span>
+                  <span className={styles.statValue}>{item.count}</span>
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className={styles.chartSection}>
-              <h3>Most Active Users</h3>
-              <div className={styles.userList}>
-                {stats.most_active_users.map((user, index) => (
-                  <div key={user.username} className={styles.userItem}>
-                    <span className={styles.userRank}>#{index + 1}</span>
-                    <span className={styles.userName}>{user.username}</span>
-                    <span className={styles.userCount}>
-                      {user.activity_count} activities
-                    </span>
-                  </div>
-                ))}
-              </div>
+          <div className={styles.statCard}>
+            <h3>Most Active Users</h3>
+            <div className={styles.statList}>
+              {stats.most_active_users.map((user, index) => (
+                <div key={user.username} className={styles.userItem}>
+                  <span className={styles.userName}>
+                    {index + 1}. {user.username}
+                  </span>
+                  <span className={styles.userCount}>
+                    {user.activity_count}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

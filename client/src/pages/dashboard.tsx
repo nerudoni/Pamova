@@ -178,7 +178,7 @@ function Dashboard() {
           </p>
         </div>
         {(user?.type === "admin" || user?.type === "owner") && (
-          <Link to="/activity-log" className={styles.adminLink}>
+          <Link to="/activityLog" className={styles.adminLink}>
             View Activity Log
           </Link>
         )}
