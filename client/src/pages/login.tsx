@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import styles from "./Login.module.css";
 
 const Login: React.FC = () => {
@@ -101,6 +101,9 @@ const Login: React.FC = () => {
               required
               disabled={isLoading}
             />
+            <Link to="/verify" className={styles.forgotPasswordLink}>
+              Forgot Password?
+            </Link>
           </div>
 
           <button

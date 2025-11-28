@@ -224,7 +224,6 @@ function Settings() {
               }`}
               onClick={() => setActiveTab("profile")}
             >
-              <span className={styles.tabIcon}>👤</span>
               My Profile
             </button>
             {isAdminOrOwner && (
@@ -235,7 +234,6 @@ function Settings() {
                   }`}
                   onClick={() => setActiveTab("register")}
                 >
-                  <span className={styles.tabIcon}>➕</span>
                   Register User
                 </button>
                 <button
@@ -244,7 +242,6 @@ function Settings() {
                   }`}
                   onClick={() => setActiveTab("manage")}
                 >
-                  <span className={styles.tabIcon}>👥</span>
                   Manage Users
                 </button>
               </>
@@ -627,7 +624,7 @@ function Settings() {
         <div className={styles.logoutSection}>
           <form onSubmit={handleLogout}>
             <button type="submit" className={styles.btnLogout}>
-              🚪 Log Out
+              Log Out
             </button>
           </form>
         </div>

@@ -1,56 +1,186 @@
+/* TimelinePage.module.css - Luxury Construction Edition */
 .timelineContainer {
-  padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(rgba(15, 17, 22, 0.97), rgba(15, 17, 22, 0.97)),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.03"><rect width="100" height="100" fill="%2348d1cc"/><path d="M0 0L100 100M100 0L0 100" stroke="%23b08d57" stroke-width="1"/></svg>');
+  background-size: cover;
+  padding: 40px 20px;
   max-width: 1200px;
   margin: 0 auto;
+  font-family: "Arial", sans-serif;
+  color: #f8f7f4;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 2px;
+  background: #b08d57;
+}
+
+.title {
+  color: #f8f7f4;
+  font-size: 2.5rem;
+  font-weight: 300;
+  letter-spacing: 1px;
+  margin: 0 0 15px 0;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  color: #b08d57;
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  margin: 0;
 }
 
 .milestoneForm {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-  background: #f9f9f9;
-  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 15px;
+  margin-bottom: 40px;
+  background: linear-gradient(rgba(42, 45, 50, 0.9), rgba(42, 45, 50, 0.9));
+  padding: 25px;
   border-radius: 8px;
+  border: 1px solid #2a2d32;
+  position: relative;
+}
+
+.milestoneForm::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b08d57, transparent);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  color: #b08d57;
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .milestoneForm input,
 .milestoneForm textarea {
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 12px 14px;
+  border: 1px solid #2a2d32;
   border-radius: 4px;
-  flex: 1;
-  min-width: 150px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(15, 17, 22, 0.6);
+  color: #f8f7f4;
+  font-family: inherit;
+}
+
+.milestoneForm input::placeholder,
+.milestoneForm textarea::placeholder {
+  color: #666;
+}
+
+.milestoneForm input:focus,
+.milestoneForm textarea:focus {
+  outline: none;
+  border-color: #48d1cc;
+  background: rgba(15, 17, 22, 0.8);
+  box-shadow: 0 0 0 2px rgba(72, 209, 204, 0.1);
 }
 
 .milestoneForm textarea {
   min-height: 60px;
   resize: vertical;
+  grid-column: 1 / -1;
 }
 
-.milestoneForm button {
-  padding: 10px 20px;
-  background: #10c7c7;
-  color: white;
+.addButton {
+  background: #b08d57;
+  color: #0f1116;
+  padding: 12px 24px;
   border: none;
   border-radius: 4px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: inherit;
+  align-self: end;
+  position: relative;
+  overflow: hidden;
+}
+
+.addButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(248, 247, 244, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.addButton:hover::before {
+  left: 100%;
+}
+
+.addButton:hover:not(:disabled) {
+  background: #c9a86d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(176, 141, 87, 0.3);
 }
 
 /* Visual Timeline */
 .timelineWrapper {
-  background: white;
+  background: linear-gradient(rgba(42, 45, 50, 0.9), rgba(42, 45, 50, 0.9));
   border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 40px 30px;
+  border: 1px solid #2a2d32;
   margin-bottom: 30px;
+  position: relative;
+}
+
+.timelineWrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #48d1cc, transparent);
 }
 
 .timeline {
   display: flex;
   justify-content: space-between;
   position: relative;
-  min-height: 120px;
+  min-height: 140px;
 }
 
 .timelineItem {
@@ -63,11 +193,11 @@
 
 .timelineLine {
   position: absolute;
-  top: 20px;
+  top: 25px;
   left: 50%;
   width: 100%;
   height: 2px;
-  background: #e0e0e0;
+  background: #2a2d32;
   z-index: 1;
 }
 
@@ -76,78 +206,98 @@
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 15px;
+  border-radius: 6px;
   transition: all 0.3s ease;
   position: relative;
   z-index: 2;
-  background: white;
-  min-width: 100px;
+  background: rgba(15, 17, 22, 0.6);
+  border: 1px solid #2a2d32;
+  min-width: 120px;
 }
 
 .timelineNode:hover {
-  background: #f5f5f5;
-  transform: translateY(-2px);
+  border-color: #48d1cc;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(15, 17, 22, 0.3);
 }
 
 .nodeDot {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  margin-bottom: 8px;
-  border: 3px solid white;
-  box-shadow: 0 0 0 2px #e0e0e0;
+  margin-bottom: 10px;
+  border: 3px solid #2a2d32;
+  transition: all 0.3s ease;
 }
 
 .timelineNode.pending .nodeDot {
-  background: #f44336;
-  box-shadow: 0 0 0 2px #f44336;
+  background: #e53e3e;
+  box-shadow: 0 0 0 2px #e53e3e;
 }
 
 .timelineNode.in_progress .nodeDot {
-  background: #ff9800;
-  box-shadow: 0 0 0 2px #ff9800;
+  background: #b08d57;
+  box-shadow: 0 0 0 2px #b08d57;
 }
 
 .timelineNode.completed .nodeDot {
-  background: #4caf50;
-  box-shadow: 0 0 0 2px #4caf50;
+  background: #48d1cc;
+  box-shadow: 0 0 0 2px #48d1cc;
 }
 
 .nodeDate {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
+  font-size: 0.85rem;
+  color: #b08d57;
+  margin-bottom: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .nodeTitle {
-  font-size: 14px;
+  font-size: 0.9rem;
   font-weight: 500;
   text-align: center;
-  color: #333;
+  color: #f8f7f4;
+  line-height: 1.3;
 }
 
 /* Milestone Details Panel */
 .milestoneDetails {
-  background: white;
+  background: linear-gradient(rgba(42, 45, 50, 0.9), rgba(42, 45, 50, 0.9));
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #10c7c7;
+  padding: 30px;
+  border: 1px solid #2a2d32;
+  border-left: 4px solid #48d1cc;
+  position: relative;
+}
+
+.milestoneDetails::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b08d57, transparent);
 }
 
 .detailsHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #2a2d32;
+  padding-bottom: 15px;
 }
 
 .detailsHeader h2 {
   margin: 0;
-  color: #333;
+  color: #f8f7f4;
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.5px;
 }
 
 .closeBtn {
@@ -155,75 +305,133 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #666;
+  color: #b08d57;
   padding: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .closeBtn:hover {
-  background: #f5f5f5;
+  background: rgba(176, 141, 87, 0.1);
+  color: #f8f7f4;
 }
 
 .detailsContent {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detailLabel {
+  color: #b08d57;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 80px;
 }
 
 .statusSelect {
-  margin-left: 10px;
-  padding: 5px 10px;
-  border: 1px solid #ddd;
+  padding: 8px 12px;
+  border: 1px solid #2a2d32;
   border-radius: 4px;
+  font-size: 0.9rem;
+  background: rgba(15, 17, 22, 0.6);
+  color: #f8f7f4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: #48d1cc;
+  box-shadow: 0 0 0 2px rgba(72, 209, 204, 0.1);
 }
 
 .descriptionSection {
-  background: #f9f9f9;
-  padding: 15px;
+  background: rgba(15, 17, 22, 0.6);
+  padding: 20px;
   border-radius: 4px;
+  border: 1px solid #2a2d32;
 }
 
 .descriptionSection strong {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  color: #b08d57;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .descriptionSection p {
   margin: 0;
-  color: #666;
-  line-height: 1.5;
+  color: #f8f7f4;
+  line-height: 1.6;
+  font-weight: 300;
 }
 
 .deleteBtn {
-  padding: 10px 20px;
-  background: #f44336;
-  color: white;
-  border: none;
+  padding: 12px 24px;
+  background: transparent;
+  color: #e53e3e;
+  border: 1px solid #e53e3e;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.3s ease;
   align-self: flex-start;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
 }
 
 .deleteBtn:hover {
-  background: #d32f2f;
+  background: rgba(229, 62, 62, 0.1);
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+  transform: translateY(-1px);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  .timelineContainer {
+    padding: 30px 15px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .milestoneForm {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .addButton {
+    grid-column: 1;
+  }
+
   .timeline {
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
   }
 
   .timelineItem {
     flex-direction: row;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
   }
 
   .timelineLine {
@@ -234,10 +442,41 @@
     flex-direction: row;
     min-width: auto;
     flex: 1;
+    text-align: left;
   }
 
   .nodeDot {
     margin-bottom: 0;
-    margin-right: 10px;
+    margin-right: 15px;
+  }
+
+  .detailsHeader {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .detailItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .timelineWrapper {
+    padding: 25px 20px;
+  }
+
+  .milestoneDetails {
+    padding: 25px 20px;
+  }
+
+  .nodeTitle {
+    font-size: 0.85rem;
   }
 }

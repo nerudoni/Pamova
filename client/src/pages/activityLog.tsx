@@ -194,7 +194,7 @@ const ActivityLog: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>📊 Activity Log</h1>
+        <h1>Activity Log</h1>
         <p>Track all system activities and user actions</p>
       </div>
 

@@ -113,7 +113,7 @@ const createTables = db.transaction(() => {
       due_date DATE NOT NULL,
       status TEXT DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects(id)
+      FOREIGN KEY (project_id) REFERENCES projects(projectID)
     )`
   ).run();
 
@@ -177,6 +177,46 @@ const createTables = db.transaction(() => {
   ).run();
 });
 createTables();
+
+// Migration: fix existing milestones foreign-key mismatch if present
+try {
+  const fkInfo = db.prepare("PRAGMA foreign_key_list('milestones')").all();
+  const needsFix = fkInfo.some(
+    (f) => f.table === "projects" && f.to !== "projectID"
+  );
+  if (needsFix) {
+    console.log(
+      "Migrating milestones foreign key to reference projects(projectID)"
+    );
+    db.prepare("PRAGMA foreign_keys = OFF").run();
+    db.transaction(() => {
+      db.prepare(
+        `CREATE TABLE IF NOT EXISTS _milestones_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          project_id INTEGER,
+          title TEXT NOT NULL,
+          description TEXT,
+          due_date DATE NOT NULL,
+          status TEXT DEFAULT 'pending',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (project_id) REFERENCES projects(projectID)
+        )`
+      ).run();
+
+      db.prepare(
+        `INSERT INTO _milestones_new (id, project_id, title, description, due_date, status, created_at)
+         SELECT id, project_id, title, description, due_date, status, created_at FROM milestones`
+      ).run();
+
+      db.prepare("DROP TABLE milestones").run();
+      db.prepare("ALTER TABLE _milestones_new RENAME TO milestones").run();
+    })();
+    db.prepare("PRAGMA foreign_keys = ON").run();
+    console.log("Milestones migration complete");
+  }
+} catch (e) {
+  console.error("Error checking/migrating milestones FK:", e);
+}
 
 // Helper function to get display name (for backward compatibility)
 function getDisplayName(user) {
@@ -706,10 +746,10 @@ app.delete("/deleteProject/:id", requireAuth, (req, res) => {
   try {
     // Get project info for logging before deletion
     const project = db
-      .prepare("SELECT * FROM projects WHERE id = ?")
+      .prepare("SELECT * FROM projects WHERE projectID = ?")
       .get(Number(id));
 
-    const deleteStmt = db.prepare("DELETE FROM projects WHERE id = ?");
+    const deleteStmt = db.prepare("DELETE FROM projects WHERE projectID = ?");
     const result = deleteStmt.run(Number(id));
 
     if (result.changes === 0) {
@@ -721,8 +761,8 @@ app.delete("/deleteProject/:id", requireAuth, (req, res) => {
         "DELETE",
         "PROJECT",
         Number(id),
-        `Deleted project: ${project.title}`,
-        { title: project.title, description: project.description }
+        `Deleted project: ${project.project_name}`,
+        { title: project.project_name, description: project.description }
       );
 
       res.json({ success: true, message: "Project deleted successfully" });
@@ -1547,7 +1587,7 @@ app.delete("/admin/users/:id", requireAuth, (req, res) => {
 
     // Delete user's projects (and associated images and milestones)
     const userProjects = db
-      .prepare("SELECT id FROM projects WHERE userId = ?")
+      .prepare("SELECT projectID as id FROM projects WHERE userId = ?")
       .all(userId);
     userProjects.forEach((project) => {
       db.prepare("DELETE FROM images WHERE projectID = ?").run(project.id);

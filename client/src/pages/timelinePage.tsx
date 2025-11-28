@@ -63,25 +63,16 @@ const TimelinePage: React.FC = () => {
   };
 
   const deleteMilestone = (milestoneId: number) => {
-    axios
-      .delete(`http://localhost:3000/milestones/${milestoneId}`)
-      .then(() => {
-        fetchMilestones();
-        if (selectedMilestone?.id === milestoneId) {
-          setSelectedMilestone(null);
-        }
-      })
-      .catch(console.error);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "#4CAF50";
-      case "in_progress":
-        return "#FF9800";
-      default:
-        return "#f44336";
+    if (window.confirm("Are you sure you want to delete this milestone?")) {
+      axios
+        .delete(`http://localhost:3000/milestones/${milestoneId}`)
+        .then(() => {
+          fetchMilestones();
+          if (selectedMilestone?.id === milestoneId) {
+            setSelectedMilestone(null);
+          }
+        })
+        .catch(console.error);
     }
   };
 
@@ -94,35 +85,52 @@ const TimelinePage: React.FC = () => {
 
   return (
     <div className={styles.timelineContainer}>
-      <h1>Project Timeline</h1>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Project Timeline</h1>
+        <p className={styles.subtitle}>Track and manage project milestones</p>
+      </div>
 
       {/* Add Milestone Form */}
       <form onSubmit={addMilestone} className={styles.milestoneForm}>
-        <input
-          type="text"
-          placeholder="Task title"
-          value={newMilestone.title}
-          onChange={(e) =>
-            setNewMilestone({ ...newMilestone, title: e.target.value })
-          }
-          required
-        />
-        <textarea
-          placeholder="Description"
-          value={newMilestone.description}
-          onChange={(e) =>
-            setNewMilestone({ ...newMilestone, description: e.target.value })
-          }
-        />
-        <input
-          type="date"
-          value={newMilestone.due_date}
-          onChange={(e) =>
-            setNewMilestone({ ...newMilestone, due_date: e.target.value })
-          }
-          required
-        />
-        <button type="submit">Add Task</button>
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>Task Title</label>
+          <input
+            type="text"
+            placeholder="Enter task title"
+            value={newMilestone.title}
+            onChange={(e) =>
+              setNewMilestone({ ...newMilestone, title: e.target.value })
+            }
+            required
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>Due Date</label>
+          <input
+            type="date"
+            value={newMilestone.due_date}
+            onChange={(e) =>
+              setNewMilestone({ ...newMilestone, due_date: e.target.value })
+            }
+            required
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>Description</label>
+          <textarea
+            placeholder="Enter task description"
+            value={newMilestone.description}
+            onChange={(e) =>
+              setNewMilestone({ ...newMilestone, description: e.target.value })
+            }
+          />
+        </div>
+
+        <button type="submit" className={styles.addButton}>
+          Add Task
+        </button>
       </form>
 
       {/* Visual Timeline */}
@@ -165,12 +173,15 @@ const TimelinePage: React.FC = () => {
           </div>
 
           <div className={styles.detailsContent}>
-            <p>
-              <strong>Due Date:</strong>{" "}
-              {new Date(selectedMilestone.due_date).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Status:</strong>
+            <div className={styles.detailItem}>
+              <span className={styles.detailLabel}>Due Date:</span>
+              <span>
+                {new Date(selectedMilestone.due_date).toLocaleDateString()}
+              </span>
+            </div>
+
+            <div className={styles.detailItem}>
+              <span className={styles.detailLabel}>Status:</span>
               <select
                 value={selectedMilestone.status}
                 onChange={(e) =>
@@ -182,7 +193,7 @@ const TimelinePage: React.FC = () => {
                 <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
               </select>
-            </p>
+            </div>
 
             <div className={styles.descriptionSection}>
               <strong>Description:</strong>

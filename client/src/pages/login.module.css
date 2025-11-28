@@ -168,6 +168,23 @@
   cursor: not-allowed;
 }
 
+.forgotPasswordLink {
+  color: #b08d57;
+  font-size: 0.85rem;
+  text-decoration: none;
+  text-align: right;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.forgotPasswordLink:hover {
+  color: #48d1cc;
+  text-decoration: underline;
+}
+
 .loginButton {
   background: #b08d57;
   color: #0f1116;
@@ -274,6 +291,10 @@
 
   .loginButton {
     padding: 0.85rem 1.5rem;
+  }
+
+  .forgotPasswordLink {
+    font-size: 0.8rem;
   }
 }
 

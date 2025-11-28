@@ -1,64 +1,149 @@
-/* Contact.module.css */
+/* Contact.module.css - Luxury Construction Edition */
 .contactContainer {
+  min-height: 100vh;
+  background: linear-gradient(rgba(15, 17, 22, 0.97), rgba(15, 17, 22, 0.97)),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.03"><rect width="100" height="100" fill="%2348d1cc"/><path d="M0 0L100 100M100 0L0 100" stroke="%23b08d57" stroke-width="1"/></svg>');
+  background-size: cover;
   padding: 60px 20px;
-  max-width: 600px;
-  margin: 0 auto;
   font-family: "Arial", sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 60vh;
 }
 
 .contactCard {
-  background: white;
-  padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(rgba(42, 45, 50, 0.9), rgba(42, 45, 50, 0.9)),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" opacity="0.02"><rect width="200" height="200" fill="%23f8f7f4"/><path d="M20 20L180 180M180 20L20 180" stroke="%23b08d57" stroke-width="0.5"/></svg>');
+  padding: 50px 40px;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(15, 17, 22, 0.5);
   text-align: center;
   width: 100%;
-  border-top: 5px solid #10c7c7;
+  max-width: 500px;
+  border: 1px solid #2a2d32;
+  position: relative;
+}
+
+.contactCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b08d57, transparent);
 }
 
 .contactTitle {
-  color: #10c7c7;
-  margin-bottom: 30px;
+  color: #f8f7f4;
+  margin-bottom: 40px;
   font-size: 2.2rem;
-  font-weight: 600;
+  font-weight: 300;
+  letter-spacing: 1px;
+  position: relative;
+  text-transform: uppercase;
+}
+
+.contactTitle::after {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 2px;
+  background: #48d1cc;
+}
+
+.contactSubtitle {
+  color: #b08d57;
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 .contactInfo {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
 }
 
 .contactItem {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
-  padding: 12px;
-  background: #f9f9f9;
-  border-radius: 8px;
+  color: #f8f7f4;
+  padding: 20px;
+  background: rgba(15, 17, 22, 0.6);
+  border-radius: 4px;
+  border: 1px solid #2a2d32;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.contactItem::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(176, 141, 87, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.contactItem:hover::before {
+  left: 100%;
 }
 
 .contactItem:hover {
-  background: #f0f0f0;
-  transform: translateX(5px);
+  border-color: #48d1cc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(15, 17, 22, 0.3);
+}
+
+.contactIcon {
+  margin-right: 15px;
+  color: #b08d57;
+  font-size: 1.3rem;
+  min-width: 25px;
+  text-align: center;
+}
+
+.contactText {
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: 0.3px;
+}
+
+.contactNote {
+  color: #b08d57;
+  font-size: 0.9rem;
+  margin-top: 30px;
+  font-style: italic;
+  font-weight: 300;
+  padding-top: 20px;
+  border-top: 1px solid #2a2d32;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
   .contactContainer {
     padding: 40px 15px;
+    min-height: 80vh;
   }
 
   .contactCard {
-    padding: 30px 20px;
+    padding: 40px 25px;
   }
 
   .contactTitle {
@@ -67,10 +152,42 @@
 
   .contactItem {
     font-size: 1rem;
-    text-align: center;
+    padding: 18px 15px;
+    text-align: left;
   }
 
-  .contactItem:hover {
-    transform: translateY(3px);
+  .contactIcon {
+    font-size: 1.1rem;
+    margin-right: 12px;
+    min-width: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contactContainer {
+    padding: 30px 15px;
+  }
+
+  .contactCard {
+    padding: 30px 20px;
+  }
+
+  .contactTitle {
+    font-size: 1.6rem;
+  }
+
+  .contactSubtitle {
+    font-size: 1rem;
+  }
+
+  .contactItem {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .contactIcon {
+    margin-right: 0;
+    margin-bottom: 5px;
   }
 }
