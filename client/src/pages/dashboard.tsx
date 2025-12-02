@@ -20,15 +20,6 @@ interface Project {
   start_date: string;
 }
 
-interface Milestone {
-  id: number;
-  project_id: number;
-  title: string;
-  due_date: string;
-  status: string;
-  project_name?: string;
-}
-
 interface Note {
   id: number;
   title: string;
@@ -42,7 +33,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [ongoingProjects, setOngoingProjects] = useState<Project[]>([]);
-  const [upcomingMilestones, setUpcomingMilestones] = useState<Milestone[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,46 +70,6 @@ function Dashboard() {
         .slice(0, 5);
       setOngoingProjects(ongoing);
 
-      // Load upcoming milestones (next 30 days)
-      const today = new Date().toISOString().split("T")[0];
-      const nextMonth = new Date();
-      nextMonth.setDate(nextMonth.getDate() + 30);
-      const nextMonthStr = nextMonth.toISOString().split("T")[0];
-
-      const milestonesPromises = allProjects.map((project: Project) =>
-        axios.get(
-          `http://localhost:3000/projects/${project.projectID}/milestones`,
-          {
-            withCredentials: true,
-          }
-        )
-      );
-
-      const milestonesResponses = await Promise.all(milestonesPromises);
-      const allMilestones: Milestone[] = [];
-
-      milestonesResponses.forEach((response, index) => {
-        const projectMilestones = response.data.map((milestone: Milestone) => ({
-          ...milestone,
-          project_name: allProjects[index].project_name,
-        }));
-        allMilestones.push(...projectMilestones);
-      });
-
-      const upcoming = allMilestones
-        .filter(
-          (milestone: Milestone) =>
-            milestone.due_date >= today &&
-            milestone.due_date <= nextMonthStr &&
-            milestone.status !== "completed"
-        )
-        .sort((a: Milestone, b: Milestone) =>
-          a.due_date.localeCompare(b.due_date)
-        )
-        .slice(0, 5);
-
-      setUpcomingMilestones(upcoming);
-
       // Load recent notes
       const notesResponse = await axios.get("http://localhost:3000/notes", {
         withCredentials: true,
@@ -137,24 +87,12 @@ function Dashboard() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getDaysUntil = (dueDate: string) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
   const getPriorityClass = (priority: string) => {
     return styles[`priority-${priority.toLowerCase()}`];
   };
 
   const getStatusClass = (isDone: boolean) => {
     return styles[`status-${isDone ? "done" : "pending"}`];
-  };
-
-  const getDeadlineClass = (daysUntil: number) => {
-    return styles[`deadline-${daysUntil <= 7 ? "urgent" : "normal"}`];
   };
 
   if (loading) {
@@ -256,43 +194,6 @@ function Dashboard() {
             </div>
           ) : (
             <p className={styles.noData}>No ongoing projects</p>
-          )}
-        </section>
-
-        {/* Upcoming Deadlines Section */}
-        <section className={styles.dashboardSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Upcoming Deadlines</h2>
-            <Link to="/timeline" className={styles.viewAllLink}>
-              View Timeline
-            </Link>
-          </div>
-          {upcomingMilestones.length > 0 ? (
-            <div className={styles.milestonesList}>
-              {upcomingMilestones.map((milestone) => {
-                const daysUntil = getDaysUntil(milestone.due_date);
-                return (
-                  <div key={milestone.id} className={styles.milestoneCard}>
-                    <h3>{milestone.title}</h3>
-                    <p>
-                      <strong>Project:</strong> {milestone.project_name}
-                    </p>
-                    <p>
-                      <strong>Due:</strong> {formatDate(milestone.due_date)}
-                    </p>
-                    <p className={getDeadlineClass(daysUntil)}>
-                      {daysUntil === 0
-                        ? "Due today"
-                        : daysUntil === 1
-                        ? "Due tomorrow"
-                        : `${daysUntil} days left`}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className={styles.noData}>No upcoming deadlines</p>
           )}
         </section>
 

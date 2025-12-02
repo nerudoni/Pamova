@@ -32,12 +32,6 @@ interface Pagination {
   pages: number;
 }
 
-interface Stats {
-  recent_activity: number;
-  activity_by_type: { action_type: string; count: number }[];
-  most_active_users: { username: string; activity_count: number }[];
-}
-
 const ActivityLog: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -45,7 +39,6 @@ const ActivityLog: React.FC = () => {
     resource_types: [],
     users: [],
   });
-  const [stats, setStats] = useState<Stats | null>(null);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 50,
@@ -61,12 +54,10 @@ const ActivityLog: React.FC = () => {
     search: "",
   });
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("activities");
 
   useEffect(() => {
     fetchActivities();
     fetchFilterOptions();
-    fetchStats();
   }, [pagination.page, filters]);
 
   const fetchActivities = async () => {
@@ -108,18 +99,6 @@ const ActivityLog: React.FC = () => {
       setFilterOptions(response.data);
     } catch (error) {
       console.error("Error fetching filter options:", error);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:3000/activity-log/stats?days=30"
-      );
-      console.log("Stats:", response.data); // Debug log
-      setStats(response.data);
-    } catch (error) {
-      console.error("Error fetching stats:", error);
     }
   };
 
@@ -183,270 +162,185 @@ const ActivityLog: React.FC = () => {
         <p>Track all system activities and user actions</p>
       </div>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${
-            activeTab === "activities" ? styles.tabActive : ""
-          }`}
-          onClick={() => setActiveTab("activities")}
-        >
-          Activities
-        </button>
-        <button
-          className={`${styles.tab} ${
-            activeTab === "stats" ? styles.tabActive : ""
-          }`}
-          onClick={() => setActiveTab("stats")}
-        >
-          Statistics
-        </button>
-      </div>
-
-      {activeTab === "activities" && (
-        <>
-          {/* Filters */}
-          <div className={styles.filtersSection}>
-            <div className={styles.filterRow}>
-              <div className={styles.filterGroup}>
-                <label>Search</label>
-                <input
-                  type="text"
-                  placeholder="Search activities..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
-                />
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>User</label>
-                <select
-                  value={filters.user_id}
-                  onChange={(e) =>
-                    handleFilterChange("user_id", e.target.value)
-                  }
-                >
-                  <option value="">All Users</option>
-                  {filterOptions.users.map((user) => (
-                    <option key={user.user_id} value={user.user_id}>
-                      {user.username}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>Action Type</label>
-                <select
-                  value={filters.action_type}
-                  onChange={(e) =>
-                    handleFilterChange("action_type", e.target.value)
-                  }
-                >
-                  <option value="">All Actions</option>
-                  {filterOptions.action_types.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>Resource Type</label>
-                <select
-                  value={filters.resource_type}
-                  onChange={(e) =>
-                    handleFilterChange("resource_type", e.target.value)
-                  }
-                >
-                  <option value="">All Resources</option>
-                  {filterOptions.resource_types.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.filterRow}>
-              <div className={styles.filterGroup}>
-                <label>From Date</label>
-                <input
-                  type="date"
-                  value={filters.start_date}
-                  onChange={(e) =>
-                    handleFilterChange("start_date", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label>To Date</label>
-                <input
-                  type="date"
-                  value={filters.end_date}
-                  onChange={(e) =>
-                    handleFilterChange("end_date", e.target.value)
-                  }
-                />
-              </div>
-
-              <button className={styles.clearFilters} onClick={clearFilters}>
-                Clear Filters
-              </button>
-            </div>
+      {/* Filters */}
+      <div className={styles.filtersSection}>
+        <div className={styles.filterRow}>
+          <div className={styles.filterGroup}>
+            <label>Search</label>
+            <input
+              type="text"
+              placeholder="Search activities..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange("search", e.target.value)}
+            />
           </div>
 
-          {/* Activity List */}
-          <div className={styles.activitiesList}>
-            {loading ? (
-              <div className={styles.loading}>Loading activities...</div>
-            ) : activities.length === 0 ? (
-              <div className={styles.noActivities}>
-                No activities found matching your filters.
-              </div>
-            ) : (
-              <>
-                {activities.map((activity) => (
-                  <div key={activity.id} className={styles.activityItem}>
-                    <div className={styles.activityHeader}>
-                      <span className={styles.actionIcon}>
-                        {getActionAbbreviation(activity.action_type)}
+          <div className={styles.filterGroup}>
+            <label>User</label>
+            <select
+              value={filters.user_id}
+              onChange={(e) => handleFilterChange("user_id", e.target.value)}
+            >
+              <option value="">All Users</option>
+              {filterOptions.users.map((user) => (
+                <option key={user.user_id} value={user.user_id}>
+                  {user.username}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.filterGroup}>
+            <label>Action Type</label>
+            <select
+              value={filters.action_type}
+              onChange={(e) =>
+                handleFilterChange("action_type", e.target.value)
+              }
+            >
+              <option value="">All Actions</option>
+              {filterOptions.action_types.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.filterGroup}>
+            <label>Resource Type</label>
+            <select
+              value={filters.resource_type}
+              onChange={(e) =>
+                handleFilterChange("resource_type", e.target.value)
+              }
+            >
+              <option value="">All Resources</option>
+              {filterOptions.resource_types.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className={styles.filterRow}>
+          <div className={styles.filterGroup}>
+            <label>From Date</label>
+            <input
+              type="date"
+              value={filters.start_date}
+              onChange={(e) => handleFilterChange("start_date", e.target.value)}
+            />
+          </div>
+
+          <div className={styles.filterGroup}>
+            <label>To Date</label>
+            <input
+              type="date"
+              value={filters.end_date}
+              onChange={(e) => handleFilterChange("end_date", e.target.value)}
+            />
+          </div>
+
+          <button className={styles.clearFilters} onClick={clearFilters}>
+            Clear Filters
+          </button>
+        </div>
+      </div>
+
+      {/* Activity List */}
+      <div className={styles.activitiesList}>
+        {loading ? (
+          <div className={styles.loading}>Loading activities...</div>
+        ) : activities.length === 0 ? (
+          <div className={styles.noActivities}>
+            No activities found matching your filters.
+          </div>
+        ) : (
+          <>
+            {activities.map((activity) => (
+              <div key={activity.id} className={styles.activityItem}>
+                <div className={styles.activityHeader}>
+                  <span className={styles.actionIcon}>
+                    {getActionAbbreviation(activity.action_type)}
+                  </span>
+                  <div className={styles.activityInfo}>
+                    <div className={styles.activityDescription}>
+                      <strong>
+                        {activity.performer_username || activity.username}
+                      </strong>
+                      <span className={styles.actionType}>
+                        {activity.action_type}
                       </span>
-                      <div className={styles.activityInfo}>
-                        <div className={styles.activityDescription}>
-                          <strong>
-                            {activity.performer_username || activity.username}
-                          </strong>
-                          <span className={styles.actionType}>
-                            {activity.action_type}
-                          </span>
-                          {activity.resource_type.toLowerCase()}
-                          {activity.resource_id && ` #${activity.resource_id}`}
-                        </div>
-                        <div className={styles.activityMeta}>
-                          <span className={styles.timestamp}>
-                            {formatDate(activity.created_at)}
-                          </span>
-                          {activity.ip_address && (
-                            <span className={styles.ip}>
-                              IP: {activity.ip_address}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      {activity.resource_type.toLowerCase()}
+                      {activity.resource_id && ` #${activity.resource_id}`}
                     </div>
-
-                    <div className={styles.activityDetails}>
-                      <div className={styles.descriptionText}>
-                        {activity.description}
-                      </div>
-
-                      {/* Show changes if available */}
-                      {(activity.old_values || activity.new_values) && (
-                        <div className={styles.changes}>
-                          {parseJsonValues(activity.old_values) && (
-                            <div className={styles.changeOld}>
-                              <strong>Before:</strong>
-                              {JSON.stringify(
-                                parseJsonValues(activity.old_values)
-                              )}
-                            </div>
-                          )}
-                          {parseJsonValues(activity.new_values) && (
-                            <div className={styles.changeNew}>
-                              <strong>After:</strong>
-                              {JSON.stringify(
-                                parseJsonValues(activity.new_values)
-                              )}
-                            </div>
-                          )}
-                        </div>
+                    <div className={styles.activityMeta}>
+                      <span className={styles.timestamp}>
+                        {formatDate(activity.created_at)}
+                      </span>
+                      {activity.ip_address && (
+                        <span className={styles.ip}>
+                          IP: {activity.ip_address}
+                        </span>
                       )}
                     </div>
                   </div>
-                ))}
+                </div>
 
-                {/* Pagination */}
-                {pagination.pages > 1 && (
-                  <div className={styles.pagination}>
-                    <button
-                      disabled={pagination.page === 1}
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                    >
-                      Previous
-                    </button>
-
-                    <span className={styles.pageInfo}>
-                      Page {pagination.page} of {pagination.pages}
-                    </span>
-
-                    <button
-                      disabled={pagination.page === pagination.pages}
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                    >
-                      Next
-                    </button>
+                <div className={styles.activityDetails}>
+                  <div className={styles.descriptionText}>
+                    {activity.description}
                   </div>
-                )}
-              </>
+
+                  {/* Show changes if available */}
+                  {(activity.old_values || activity.new_values) && (
+                    <div className={styles.changes}>
+                      {parseJsonValues(activity.old_values) && (
+                        <div className={styles.changeOld}>
+                          <strong>Before:</strong>
+                          {JSON.stringify(parseJsonValues(activity.old_values))}
+                        </div>
+                      )}
+                      {parseJsonValues(activity.new_values) && (
+                        <div className={styles.changeNew}>
+                          <strong>After:</strong>
+                          {JSON.stringify(parseJsonValues(activity.new_values))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className={styles.pagination}>
+                <button
+                  disabled={pagination.page === 1}
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                >
+                  Previous
+                </button>
+
+                <span className={styles.pageInfo}>
+                  Page {pagination.page} of {pagination.pages}
+                </span>
+
+                <button
+                  disabled={pagination.page === pagination.pages}
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                >
+                  Next
+                </button>
+              </div>
             )}
-          </div>
-        </>
-      )}
-
-      {activeTab === "stats" && stats && (
-        <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
-            <h3>Activity Overview</h3>
-            <div className={styles.statList}>
-              <div className={styles.statItem}>
-                <span className={styles.statLabel}>
-                  Total Activities (30 days)
-                </span>
-                <span className={styles.statValue}>
-                  {stats.recent_activity}
-                </span>
-              </div>
-              <div className={styles.statItem}>
-                <span className={styles.statLabel}>Active Users</span>
-                <span className={styles.statValue}>
-                  {stats.most_active_users.length}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <h3>Activity by Type</h3>
-            <div className={styles.statList}>
-              {stats.activity_by_type.map((item) => (
-                <div key={item.action_type} className={styles.statItem}>
-                  <span className={styles.statLabel}>{item.action_type}</span>
-                  <span className={styles.statValue}>{item.count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <h3>Most Active Users</h3>
-            <div className={styles.statList}>
-              {stats.most_active_users.map((user, index) => (
-                <div key={user.username} className={styles.userItem}>
-                  <span className={styles.userName}>
-                    {index + 1}. {user.username}
-                  </span>
-                  <span className={styles.userCount}>
-                    {user.activity_count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

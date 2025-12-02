@@ -303,7 +303,6 @@ function logActivity(
 }
 
 // Auth routes
-// Auth routes - UPDATED FOR NEW SCHEMA
 app.post("/register", (req, res) => {
   let {
     email,
@@ -402,7 +401,7 @@ app.post("/register", (req, res) => {
   }
 });
 
-//LOGIN - now uses email instead of username
+//LOGIN
 app.post("/login", (req, res) => {
   let { email, password } = req.body;
   console.log("Login attempt for:", email);
@@ -556,7 +555,6 @@ app.post("/createProject", requireAuth, upload.array("images"), (req, res) => {
   });
 });
 
-// Update other project routes to use the new schema
 app.get("/projects", (req, res) => {
   try {
     // Only return draft projects to authenticated users
@@ -917,10 +915,10 @@ app.delete("/milestones/:id", requireAuth, (req, res) => {
   }
 });
 
-/// Notes routes - User-centric with sharing
+/// Notes routes
 app.get("/notes", requireAuth, (req, res) => {
   try {
-    // Get user's own notes + notes shared with user
+    // Get user's own notes and notes shared with user
     const notes = db
       .prepare(
         `
@@ -970,7 +968,7 @@ app.post("/notes", requireAuth, (req, res) => {
     const result = noteStmt.run(user_id, title, content, priority);
     const noteId = result.lastInsertRowid;
 
-    // Handle sharing if specified
+    // Handle sharing
     if (shared_with && shared_with.length > 0) {
       const shareStmt = db.prepare(`
         INSERT INTO note_shares (note_id, shared_by_user_id, shared_with_user_id, can_edit)
