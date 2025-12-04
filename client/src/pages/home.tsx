@@ -129,7 +129,7 @@ const Home: React.FC = () => {
       <section className={styles.premium}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>The Pamova Standard</h2>
+            <h2 className={styles.sectionTitle}>The Company Standard</h2>
             <p className={styles.sectionSubtitle}>
               Why leading energy companies choose us for their most critical
               infrastructure
@@ -221,7 +221,7 @@ const Home: React.FC = () => {
                 <div className={styles.imagePlaceholder}></div>
                 <div className={styles.projectOverlay}>
                   <span className={styles.projectClient}>
-                    Pamova Construction
+                    Mr W's Construction
                   </span>
                 </div>
               </div>

@@ -1200,7 +1200,7 @@ app.delete("/notes/:id", requireAuth, (req, res) => {
   }
 });
 
-// Get users for sharing dropdown - UPDATED
+// Get users for sharing dropdown
 app.get("/users", requireAuth, (req, res) => {
   try {
     const users = db

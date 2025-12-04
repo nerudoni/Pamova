@@ -6,7 +6,7 @@ const About: React.FC = () => {
     <div className={styles.aboutContainer}>
       {/* Header Section */}
       <header className={styles.header}>
-        <h1 className={styles.title}>About Pamova</h1>
+        <h1 className={styles.title}>About Mr W's construction</h1>
         <p className={styles.subtitle}>Engineering Excellence Since 2013</p>
       </header>
 
@@ -15,8 +15,8 @@ const About: React.FC = () => {
         <div className={styles.contentBox}>
           <h2>Our Heritage</h2>
           <p>
-            Founded in 2013, Pamova has established itself as a premier
-            engineering and construction firm specializing in fuel
+            Founded in 2013, Mr W's construction has established itself as a
+            premier engineering and construction firm specializing in fuel
             infrastructure projects. With over a decade of experience, we have
             built a reputation for delivering complex fuel storage and
             distribution systems with uncompromising quality and precision.
@@ -61,11 +61,11 @@ const About: React.FC = () => {
         <div className={styles.contentBox}>
           <h2>Who We Are</h2>
           <p>
-            Pamova is a team of dedicated engineers, project managers, and
-            construction specialists with deep expertise in fuel infrastructure.
-            We combine technical excellence with practical construction
-            knowledge to deliver projects that meet the highest standards of
-            safety, efficiency, and reliability.
+            Mr W's construction is a team of dedicated engineers, project
+            managers, and construction specialists with deep expertise in fuel
+            infrastructure. We combine technical excellence with practical
+            construction knowledge to deliver projects that meet the highest
+            standards of safety, efficiency, and reliability.
           </p>
           <p>
             Our approach is built on collaboration, innovation, and a relentless

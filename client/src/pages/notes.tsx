@@ -151,7 +151,7 @@ const NotesPage: React.FC = () => {
 
   return (
     <div className={styles.notesContainer}>
-      <h1>My Notes 📝</h1>
+      <h1>My Notes</h1>
 
       {/* Add Note Form */}
       <form onSubmit={addNote} className={styles.noteForm}>
@@ -233,12 +233,12 @@ const NotesPage: React.FC = () => {
               <div className={styles.noteMeta}>
                 {note.shared_with_me && (
                   <span className={styles.shared}>
-                    👥 Shared by {note.author_username}
+                    Shared by {note.author_username}
                   </span>
                 )}
                 {!note.shared_with_me && note.shared_with_users && (
                   <span className={styles.shared}>
-                    👥 Shared with: {note.shared_with_users}
+                    Shared with: {note.shared_with_users}
                   </span>
                 )}
                 {!note.shared_with_me && (
@@ -257,7 +257,7 @@ const NotesPage: React.FC = () => {
                 className={styles.doneBtn}
                 disabled={note.shared_with_me && !note.can_edit_shared}
               >
-                {note.is_done ? "✅ Done" : "⬜ Mark Done"}
+                {note.is_done ? "Completed" : "Mark as Done"}
               </button>
 
               {isNoteOwner(note) && (
@@ -265,14 +265,16 @@ const NotesPage: React.FC = () => {
                   <button
                     onClick={() => openShareDialog(note)}
                     className={styles.shareBtn}
+                    title="Share note"
                   >
-                    🔗
+                    Share
                   </button>
                   <button
                     onClick={() => deleteNote(note.id)}
                     className={styles.deleteBtn}
+                    title="Delete note"
                   >
-                    🗑️
+                    Delete
                   </button>
                 </>
               )}

@@ -5,7 +5,7 @@ function Contact() {
   return (
     <div className={styles.contactContainer}>
       <div className={styles.contactCard}>
-        <h2 className={styles.contactTitle}>Contact Pamova</h2>
+        <h2 className={styles.contactTitle}>Contact Mr W's construction</h2>
         <p className={styles.contactSubtitle}>
           Get in touch with our engineering team
         </p>

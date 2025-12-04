@@ -42,12 +42,12 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  // Check if we're on a public page
+  // Check if public page
   const isPublicPage = ["/", "/about", "/projects", "/contact"].includes(
     currentPath
   );
 
-  // Check if we're on an employee-only page
+  // Check if employee-only page
   const isEmployeePage = ["/dashboard", "/manage", "/settings"].includes(
     currentPath
   );
@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
           {/* Logo - always goes to homepage */}
           <div className={styles.logo}>
             <a href="/" onClick={closeMenu}>
-              <span className={styles.logoText}>Pamova</span>
+              <span className={styles.logoText}>Mr W's</span>
               <span className={styles.logoSubtitle}>CONSTRUCTION</span>
             </a>
           </div>
