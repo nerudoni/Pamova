@@ -1,8 +1,77 @@
 // src/pages/Home.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./Home.module.css";
 
+interface Project {
+  projectID: number;
+  project_name: string;
+  description: string;
+  client: string;
+  status: string;
+  country: string;
+  address: string;
+  created_at: string;
+}
+
 const Home: React.FC = () => {
+  const [newestProjects, setNewestProjects] = useState<Project[]>([]);
+  const [projectImages, setProjectImages] = useState<{ [key: number]: string }>(
+    {}
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch projects and get the newest ones
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/projects", {
+          credentials: "include",
+        });
+        const data = await response.json();
+
+        // Sort by created_at descending and take first 3
+        const sorted = data
+          .sort(
+            (a: Project, b: Project) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          )
+          .slice(0, 3);
+        setNewestProjects(sorted);
+
+        // Fetch first image for each project
+        const imagesMap: { [key: number]: string } = {};
+        await Promise.all(
+          sorted.map(async (project: Project) => {
+            try {
+              const imagesRes = await fetch(
+                `http://localhost:3000/projects/${project.projectID}/images`
+              );
+              const imagesData = await imagesRes.json();
+              if (imagesData.length > 0) {
+                imagesMap[project.projectID] = imagesData[0].image_url;
+              }
+            } catch (err) {
+              console.error(
+                `Error fetching images for project ${project.projectID}:`,
+                err
+              );
+            }
+          })
+        );
+
+        setProjectImages(imagesMap);
+      } catch (err) {
+        console.error("Error fetching newest projects:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <>
       {/* Hero Section */}
@@ -74,7 +143,6 @@ const Home: React.FC = () => {
           </div>
           <div className={styles.servicesGrid}>
             <div className={styles.serviceCard}>
-              <div className={styles.serviceIcon}>⛽</div>
               <h3>Fuel Storage Tanks</h3>
               <p>
                 Massive-scale fuel storage solutions with advanced safety
@@ -82,7 +150,6 @@ const Home: React.FC = () => {
               </p>
             </div>
             <div className={styles.serviceCard}>
-              <div className={styles.serviceIcon}>🏗️</div>
               <h3>Filling Stations</h3>
               <p>
                 Premium fuel stations with integrated retail spaces and advanced
@@ -90,7 +157,6 @@ const Home: React.FC = () => {
               </p>
             </div>
             <div className={styles.serviceCard}>
-              <div className={styles.serviceIcon}>🏭</div>
               <h3>Industrial Facilities</h3>
               <p>
                 Specialized warehouses, processing plants, and industrial
@@ -98,7 +164,6 @@ const Home: React.FC = () => {
               </p>
             </div>
             <div className={styles.serviceCard}>
-              <div className={styles.serviceIcon}>💧</div>
               <h3>Water Infrastructure</h3>
               <p>
                 Large-scale water storage and distribution systems for
@@ -106,7 +171,6 @@ const Home: React.FC = () => {
               </p>
             </div>
             <div className={styles.serviceCard}>
-              <div className={styles.serviceIcon}>🏢</div>
               <h3>Commercial Construction</h3>
               <p>
                 Office complexes, residential flats, and commercial spaces with
@@ -114,7 +178,6 @@ const Home: React.FC = () => {
               </p>
             </div>
             <div className={styles.serviceCard}>
-              <div className={styles.serviceIcon}>🔧</div>
               <h3>Specialized Projects</h3>
               <p>
                 Custom engineering solutions for unique industrial and
@@ -176,70 +239,69 @@ const Home: React.FC = () => {
       <section className={styles.projects}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Strategic Projects</h2>
+            <h2 className={styles.sectionTitle}>Latest Projects</h2>
             <p className={styles.sectionSubtitle}>
-              Critical infrastructure developments across Southern Africa
+              Our most recent strategic infrastructure developments
             </p>
           </div>
-          <div className={styles.projectsGrid}>
-            <div className={styles.projectCard}>
-              <div className={styles.projectImage}>
-                <div className={styles.imagePlaceholder}></div>
-                <div className={styles.projectOverlay}>
-                  <span className={styles.projectClient}>Puma Energy</span>
-                </div>
-              </div>
-              <div className={styles.projectInfo}>
-                <h3>2M Liter Bulk Fuel Storage</h3>
-                <p>
-                  Massive-scale fuel storage facility with advanced safety
-                  systems and automated distribution
-                </p>
-                <span className={styles.projectCategory}>
-                  Fuel Infrastructure
-                </span>
-              </div>
+
+          {loading ? (
+            <div className={styles.loadingProjects}>
+              Loading latest projects...
             </div>
-            <div className={styles.projectCard}>
-              <div className={styles.projectImage}>
-                <div className={styles.imagePlaceholder}></div>
-                <div className={styles.projectOverlay}>
-                  <span className={styles.projectClient}>Premium Client</span>
-                </div>
+          ) : newestProjects.length > 0 ? (
+            <>
+              <div className={styles.projectsGrid}>
+                {newestProjects.map((project) => (
+                  <div key={project.projectID} className={styles.projectCard}>
+                    <Link
+                      to={`/projects/${project.projectID}`}
+                      className={styles.projectLink}
+                    >
+                      <div className={styles.projectImage}>
+                        {projectImages[project.projectID] ? (
+                          <img
+                            src={`http://localhost:3000${
+                              projectImages[project.projectID]
+                            }`}
+                            alt={project.project_name}
+                            className={styles.projectImage}
+                          />
+                        ) : (
+                          <div className={styles.imagePlaceholder}>
+                            <div className={styles.placeholderIcon}>🏗️</div>
+                          </div>
+                        )}
+                        <div className={styles.yearOverlay}>
+                          {new Date(project.created_at).getFullYear()}
+                        </div>
+                      </div>
+                      <div className={styles.projectInfo}>
+                        <h3 className={styles.projectTitle}>
+                          {project.project_name}
+                        </h3>
+                        <div className={styles.projectArrow}>
+                          <span className={styles.arrowIcon}>→</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
               </div>
-              <div className={styles.projectInfo}>
-                <h3>Luxury Fuel Station Network</h3>
-                <p>
-                  Premium filling stations with integrated retail spaces and
-                  advanced fuel management systems
-                </p>
-                <span className={styles.projectCategory}>Commercial Fuel</span>
+              <div className={styles.projectsCta}>
+                <a href="/projects" className={styles.primaryBtn}>
+                  View All Projects
+                </a>
               </div>
+            </>
+          ) : (
+            <div className={styles.noProjects}>
+              <p>No projects available at the moment.</p>
+              <a href="/projects" className={styles.primaryBtn}>
+                View All Projects
+              </a>
             </div>
-            <div className={styles.projectCard}>
-              <div className={styles.projectImage}>
-                <div className={styles.imagePlaceholder}></div>
-                <div className={styles.projectOverlay}>
-                  <span className={styles.projectClient}>
-                    Mr W's Construction
-                  </span>
-                </div>
-              </div>
-              <div className={styles.projectInfo}>
-                <h3>Corporate Headquarters</h3>
-                <p>
-                  State-of-the-art office and warehouse facility showcasing our
-                  construction capabilities
-                </p>
-                <span className={styles.projectCategory}>Commercial</span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.projectsCta}>
-            <a href="/projects" className={styles.primaryBtn}>
-              View Project Portfolio
-            </a>
-          </div>
+          )}
         </div>
       </section>
 

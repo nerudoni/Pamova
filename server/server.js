@@ -42,7 +42,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Database setup - UPDATED USER SCHEMA
+// Database setup
 const createTables = db.transaction(() => {
   db.prepare(
     `
@@ -59,7 +59,6 @@ const createTables = db.transaction(() => {
     `
   ).run();
 
-  // ... rest of your table creations remain the same
   db.prepare(
     `
   CREATE TABLE IF NOT EXISTS projects (
@@ -67,9 +66,7 @@ const createTables = db.transaction(() => {
     project_name VARCHAR(100) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
-    -- SQLite doesn't support ENUM; use TEXT with a CHECK constraint instead
     status TEXT DEFAULT 'ongoing' CHECK(status IN ('ongoing','complete')),
-    -- SQLite has no native BOOLEAN type; use INTEGER 0/1
     draft INTEGER DEFAULT 0,
     address VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -178,7 +175,6 @@ const createTables = db.transaction(() => {
 });
 createTables();
 
-// Migration: fix existing milestones foreign-key mismatch if present
 try {
   const fkInfo = db.prepare("PRAGMA foreign_key_list('milestones')").all();
   const needsFix = fkInfo.some(
@@ -747,6 +743,16 @@ app.delete("/deleteProject/:id", requireAuth, (req, res) => {
       .prepare("SELECT * FROM projects WHERE projectID = ?")
       .get(Number(id));
 
+    if (!project) {
+      res.status(404).json({ error: "Project not found" });
+      return;
+    }
+
+    // Delete related records first (foreign key constraints)
+    db.prepare("DELETE FROM images WHERE projectID = ?").run(Number(id));
+    db.prepare("DELETE FROM milestones WHERE project_id = ?").run(Number(id));
+
+    // Finally delete the project
     const deleteStmt = db.prepare("DELETE FROM projects WHERE projectID = ?");
     const result = deleteStmt.run(Number(id));
 
